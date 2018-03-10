@@ -1,46 +1,61 @@
-const Struct = require('struct')
+
 const db = require('./db')
-const dgram = require("dgram");
+const express = require('express')
+const raname = require('random-name')
+const uuidv1 = require('uuid/v1')
+const moment = require('moment')
+const numeral = require('numeral')
 
-const HttpResponseStruct = Struct()
-    .word16Sle('size')
-    .word16Sle('type')
-    .chars('body', 8192 - 4)
+const app = express()
+app.locals.moment = moment
+app.locals.numeral = numeral
 
-const FullStateObjectStruct = Struct()
-    .word32Sle('id')
-    .floatle('x')
-    .floatle('y')
-    .floatle('a')
-
-const FullStateStruct = Struct()
-    .word8Sle('type')
-    .word8Sle('padding0')
-    .word8Sle('padding1')
-    .word8Sle('padding2')
-    .array('objects', 64, FullStateObjectStruct)
-
-FullStateStruct.allocate()
-const buf = FullStateStruct.buffer()
-console.log(buf)
-
-db.query(`SELECT
-mission_id, reward,
-dept.name AS dept_name, dept.x AS dept_x, dept.y AS dept_y,
-arvl.name AS arvl_name, arvl.x AS arvl_x, arvl.y AS arvl_y
-FROM ttl.mission m
-JOIN ttl.region dept ON m.departure_id=dept.region_id
-JOIN ttl.region arvl ON m.arrival_id=arvl.region_id`).then(console.log)
-
-const express = require('express');
-const app = express();
-app.use(express.static('html'));
+app.use(express.static('html'))
 app.set('view engine', 'pug')
 
-app.get('/idle', (req, res) => {
-    res.render('idle', { title: 'Hey', message: 'Hello there!' })
-  })
+const userCache = {}
 
-app.listen(3000, function(){
-    console.log('Conneted 3000 port!');
-});
+const createUser = guid => 
+    db.query(`INSERT INTO user (guid, name) VALUES (?, ?)`, [guid, `${raname.first()} ${raname.last()}`])
+        .then(_ => db.query(`INSERT INTO ship (user_id, name) VALUES (?, ?)`, [_.insertId, `${raname.middle()} ${raname.middle()}`]))
+
+const findUser = guid =>
+    db.queryOne(`SELECT
+            u.user_id, u.guid, u.name AS user_name, u.gold,
+            s.ship_id, s.name AS ship_name, s.x, s.y, s.angle, s.oil
+        FROM ttl.user u
+            JOIN ttl.ship s ON u.user_id = s.user_id
+        WHERE u.guid = ?
+        LIMIT 1`, [guid])
+
+const findOrCreateUser = guid => guid in userCache
+    ? Promise.resolve(userCache[guid])
+    : findUser(guid).then(u => u.user_id !== undefined
+        ? (userCache[guid] = u)
+        : createUser(guid).then(_ => findOrCreateUser(guid)))
+
+const findMission = () => 
+    db.query(`SELECT
+            mission_id, reward,
+            dept.name AS dept_name, dept.x AS dept_x, dept.y AS dept_y,
+            arvl.name AS arvl_name, arvl.x AS arvl_x, arvl.y AS arvl_y
+        FROM ttl.mission m
+            JOIN ttl.region dept ON m.departure_id=dept.region_id
+            JOIN ttl.region arvl ON m.arrival_id=arvl.region_id`)
+        .then(result => {
+            console.log(result)
+        })
+
+app.get('/', (req, res) => 
+    findOrCreateUser(req.query.u || uuidv1())
+        .then(u => res.render('intro', {user: u}))
+        .catch(console.log))
+
+app.get('/idle', (req, res) => 
+    findOrCreateUser(req.query.u || uuidv1())
+        .then(u => res.render('idle', {user: u}))
+        .catch(console.log))
+
+app.listen(3001, function(){
+    console.log('Conneted 3001 port!')
+})
