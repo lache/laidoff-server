@@ -28,13 +28,26 @@ const findUser = guid =>
         WHERE u.guid = ?
         LIMIT 1`, [guid])
 
+const earnGold = (guid, reward) =>
+    db.query(`UPDATE user SET gold = gold + ? WHERE guid = ?`, [reward, guid])
+
 const findOrCreateUser = guid => guid in userCache
     ? Promise.resolve(userCache[guid])
     : findUser(guid).then(u => u.user_id !== undefined
         ? (userCache[guid] = u)
         : createUser(guid).then(_ => findOrCreateUser(guid)))
 
-const findMission = () => 
+const findMission = (missionId) => 
+    db.queryOne(`SELECT
+            mission_id, reward,
+            dept.name AS dept_name, dept.x AS dept_x, dept.y AS dept_y,
+            arvl.name AS arvl_name, arvl.x AS arvl_x, arvl.y AS arvl_y
+        FROM ttl.mission m
+            JOIN ttl.region dept ON m.departure_id=dept.region_id
+            JOIN ttl.region arvl ON m.arrival_id=arvl.region_id
+        WHERE m.mission_id = ?`, [missionId])
+
+const findMissions = () => 
     db.query(`SELECT
             mission_id, reward,
             dept.name AS dept_name, dept.x AS dept_x, dept.y AS dept_y,
@@ -43,7 +56,21 @@ const findMission = () =>
             JOIN ttl.region dept ON m.departure_id=dept.region_id
             JOIN ttl.region arvl ON m.arrival_id=arvl.region_id`)
         .then(result => {
-            console.log(result)
+            const rows = []
+            let row = []
+            let index = 0
+            for (let each of result) {
+                row.push(each)
+                if (++index % 2 == 0) {
+                    rows.push(row)
+                    row = []
+                }
+            }
+            if (row.length > 0) {
+                rows.push(row)
+            }
+            console.log(rows)
+            return rows
         })
 
 app.get('/', (req, res) => 
@@ -55,6 +82,28 @@ app.get('/idle', (req, res) =>
     findOrCreateUser(req.query.u || uuidv1())
         .then(u => res.render('idle', {user: u}))
         .catch(console.log))
+
+app.get('/mission', (req, res) => 
+    findOrCreateUser(req.query.u || uuidv1())
+        .then(u => findMissions()
+            .then(m => res.render('mission', {user: u, rows: m})))
+        .catch(console.log))
+    
+app.get('/start', (req, res) => 
+findOrCreateUser(req.query.u || uuidv1())
+    .then(u => findMission(req.query.mission || 1)
+        .then(m => res.render('start', {user: u, mission: m})))
+    .catch(console.log))
+
+app.get('/success', (req, res) => 
+findOrCreateUser(req.query.u || uuidv1())
+    .then(u => findMission(req.query.mission || 1)
+        .then(m => earnGold(u.guid, m.reward)
+            .then(_ => {
+                delete userCache[u.guid]
+                return res.render('success', {user: u, mission: m})
+            })))
+    .catch(console.log))
 
 app.listen(3001, function(){
     console.log('Conneted 3001 port!')

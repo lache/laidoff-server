@@ -3,53 +3,18 @@ html
   body.mar00.fwht.f1
     include ./includes/stat.pug
 
-    a.dpinblk.red.pad5(href='HTMLPage2.html') 두 번째 페이지로...
-    =" "
-    a.dpinblk.blk.tc.w30(href='HTMLPage2.html') 선택 아이템 1
+    a.dpinblk.red.pad5(href='/idle?u=' + user.guid) 취소
     
     div.mar0a.blk8.w70
       div.pad2.tc.f1p5 계약 선택
     
     table.mar0a.blk.w70
-      tr
-        td.wspre
-          | 인천 - 요코하마 (500.0 km)
-          | 보수: 50,000,000원
-          | 화물: 300 t
-        td
-          a.pad5.tc.dpblc.wblue(href='HTMLPage2.html') 선택
-        td.wspre
-          | 인천 - 요코하마 (500.0 km)
-          | 보수: 50,000,000원
-          | 화물: 300 t
-        td
-          a.pad5.tc.dpblc.wblue(href='HTMLPage2.html') 선택
-      tr
-        td.wspre
-          | 인천 - 요코하마 (500.0 km)
-          | 보수: 50,000,000원
-          | 화물: 300 t
-        td
-          a.pad5.tc.dpblc.wblue(href='HTMLPage2.html') 선택
-        td.wspre
-          | 인천 - 요코하마 (500.0 km)
-          | 보수: 50,000,000원
-          | 화물: 300 t
-        td
-          a.pad5.tc.dpblc.wblue(href='HTMLPage2.html') 선택
-
-    div.red.w70
-      div.flft.dpblc.w80.red
-        div.wspre.pad3
-          | 인천 - 요코하마 (500.0 km)
-          | 보수: 50,000,000원
-          | 화물: 300 t
-      div.frgt.dpblc.w20.blk
-        div.pad3.tc 선택
-        
-    div.red.w70
-      div.flft.dpblc.w80.red
-        div.wspre.pad3
-          | 노선 1
-      div.frgt.dpblc.w20.blk
-        a.pad3.tc.dpblc.blk(href='HTMLPage2.html') 선택
+      each row in rows
+        tr
+          each col in row
+            td.wspre
+              | #{col.dept_name} - #{col.arvl_name} (500.0 km)
+              | 보수: #{numeral(col.reward).format('0,0')}원
+              | 화물: 300 t
+            td
+              a.pad5.tc.dpblc.wblue(href='/start?u=' + user.guid + '&mission=' + col.mission_id) 선택

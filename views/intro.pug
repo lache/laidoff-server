@@ -1,12 +1,9 @@
 html
-  head
-    meta(charset='utf-8')
-    title Transport Tycoon Lee
-    style.
-      body{background-color:white;}
+  include ./includes/head.pug
   body
     center
       img(src='/ttl-title.png')
     hr
     center
-      a(href='/idle?u=' + user.guid) Transport Tycoon Lee
+      h1
+        a.dpinblk.red.pad5(href='/idle?u=' + user.guid) Transport Tycoon Lee
