@@ -1,0 +1,10 @@
+div.wspre
+  | 자금 #{user.gold}원
+  | 기름 #{user.oil}L
+div.wspre.stat.red
+  | #{user.ship_name} 항해중
+  | 위도 #{user.x} 경도 #{user.y}
+  // | 요코하마까지 502.4 km
+div.wspre.date
+  | #{moment().format('YYYY년 MM월 DD일 (dddd)')}
+  | #{moment().format('HH:mm')}

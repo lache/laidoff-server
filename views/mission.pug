@@ -1,43 +1,7 @@
 html
-  head
-    meta(charset='utf-8')
-    title Mission
-    style.
-      .red{background-color:rgba(255,0,0,0.7);}
-      .wblue{background-color:rgba(0,200,200,0.8);}
-      .blk{background-color:rgba(0,0,0,0.7);}
-      .blk8{background-color:rgba(0,0,0,0.8);}
-      .tc{text-align:center;}
-      .stat{position:absolute;top:0;width:50%;left:25%;text-align:center;}
-      .date{position:absolute;top:0;right:0;text-align:right;}
-      .pad3{padding:3pt;}
-      .pad5{padding:5pt;}
-      .w20{width:20%}
-      .w30{width:30%}
-      .w70{width:70%}
-      .w80{width:80%}
-      .mar0a{margin:0 auto;}
-      .mar00{margin: 0;}
-      .fwht{color:white;}
-      .f1p5{font-size:1.5em;}
-      .f1{font-size:1em;}
-      .dpinblk{display:inline-block;}
-      .dpblc{display:block;}
-      .flft{float:left;}
-      .frgt{float:right;}
-      .wspre{white-space:pre;}
+  include ./includes/head.pug
   body.mar00.fwht.f1
-
-    div.wspre
-      | 자금 1,172,100,000원
-      | 기름 19,209L
-    div.wspre.stat.red
-      | 카시오페아 항해중
-      | 위도 12.34 경도 45.44
-      | 요코하마까지 502.4 km
-    div.wspre.date
-      | 2018년 2월 12일 (월)
-      | 13:15
+    include ./includes/stat.pug
 
     a.dpinblk.red.pad5(href='HTMLPage2.html') 두 번째 페이지로...
     =" "

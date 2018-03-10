@@ -35,6 +35,11 @@ JOIN ttl.region arvl ON m.arrival_id=arvl.region_id`).then(console.log)
 const express = require('express');
 const app = express();
 app.use(express.static('html'));
+app.set('view engine', 'pug')
+
+app.get('/idle', (req, res) => {
+    res.render('idle', { title: 'Hey', message: 'Hello there!' })
+  })
 
 app.listen(3000, function(){
     console.log('Conneted 3000 port!');
