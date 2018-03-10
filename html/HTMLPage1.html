@@ -1,79 +1,51 @@
-<!DOCTYPE html>
-<html>
-<meta charset="utf-8">
-<head>
-    <title>Min Browser</title>
-    <style>
-        .bottom {
-            position: absolute;
-            bottom: 0;
-            width: 70%;
-            left: 15%;
-        }
-        .centertop {
-            position: absolute;
-            top: 0;
-            width: 50%;
-            left: 25%;
-            text-align: center;
-            background-color: rgba(255, 0, 0, 0.7);
-        }
-        .righttop {
-            position: absolute;
-            top: 0;
-            right: 0;
-            text-align:right;
-        }
-        #parent{
-		    /*margin: 0 auto;*/
-		    width: 70%;
-		    background-color: rgba(255, 0, 0, 0.7);
-		}
-		#child-left{
-		    float: left;
-		    display:block;
-		    width: 80%;
-		    background-color: rgba(255, 0, 0, 0.7);
-		}
-		#child-right{
-		    float: right;
-		    display:block;
-		    width: 20%;
-		    background-color: rgba(0, 0, 0, 0.7);
-		}
-		.select-button {
-			padding: 5pt;
-			text-align: center;
-			display: block;
-			background-color: rgba(0,200,200,0.8);
-		}
+<!DOCTYPE html><html><meta charset="utf-8"><head><title>Mission</title><style>
+.red{background-color:rgba(255,0,0,0.7);}
+.wblue{background-color:rgba(0,200,200,0.8);}
+.blk{background-color:rgba(0,0,0,0.7);}
+.blk8{background-color:rgba(0,0,0,0.8);}
+.tc{text-align:center;}
+.stat{position:absolute;top:0;width:50%;left:25%;text-align:center;}
+.date{position:absolute;top:0;right:0;text-align:right;}
+.pad3{padding:3pt;}
+.pad5{padding:5pt;}
+.w20{width:20%}
+.w30{width:30%}
+.w70{width:70%}
+.w80{width:80%}
+.mar0a{margin:0 auto;}
+.mar00{margin: 0;}
+.fwht{color:white;}
+.f1p5{font-size:1.5em;}
+.f1{font-size:1em;}
+.dpinblk{display:inline-block;}
+.dpblc{display:block;}
+.flft{float:left;}
+.frgt{float:right;}
     </style>
 </head>
-<body style="margin:0px;color:white;font-size:1em">
-
+<body class="mar00 fwht f1">
     <div>
         자금 1,172,100,000원<br />
         기름 19,209L<br />
     </div>
-    <div class="centertop">
+    <div class="stat red">
         카시오페아 항해중<br />
         위도 12.34 경도 45.44<br />
         요코하마까지 502.4 km<br />
     </div>
-    <div class="righttop">
+    <div class="date">
         2018년 2월 12일 (월)<br />
         13:15<br />
     </div>
 
-    <a style="display:inline-block;background-color:rgba(255, 0, 0, 0.7);padding:5pt" href="HTMLPage2.html">두 번째 페이지로...</a>
+    <a class="dpinblk red pad5" href="HTMLPage2.html">두 번째 페이지로...</a>
+	<a class="dpinblk blk tc w30" href="HTMLPage2.html">선택 아이템 1</a>
 
-	<a style="display:inline-block;background-color:rgba(0, 0, 0, 0.7);width:30%;text-align: center;" href="HTMLPage2.html">선택 아이템 1</a>
-
-	<div style="margin:0 auto;background-color:rgba(0, 0, 0, 0.8);width:70%;">
-		<div style="padding:2pt;text-align:center;font-size:1.5em">계약 선택</div>
+	<div class="mar0a blk8 w70">
+		<div class="pad2 tc f1p5">계약 선택</div>
 	</div>
 
-	<table style="margin:0 auto; width:70%; background-color: rgba(0,0,0,0.7);">
+	<table class="mar0a blk w70">
 		<tr>
 			<td>
 				인천 - 요코하마 (500.0 km)<br/>
@@ -81,7 +53,7 @@
 				화물: 300 t<br/>
 			</td>
 			<td>
-				<a class="select-button" href="HTMLPage2.html">선택</a>
+				<a class="pad5 tc dpblc wblue" href="HTMLPage2.html">선택</a>
 			</td>
 			<td>
 				인천 - 요코하마 (500.0 km)<br/>
@@ -89,7 +61,7 @@
 				화물: 300 t<br/>
 			</td>
 			<td>
-				<a class="select-button" href="HTMLPage2.html">선택</a>
+				<a class="pad5 tc dpblc wblue" href="HTMLPage2.html">선택</a>
 			</td>
 		</tr>
 		<tr>
@@ -99,7 +71,7 @@
 				화물: 300 t<br/>
 			</td>
 			<td>
-				<a class="select-button" href="HTMLPage2.html">선택</a>
+				<a class="pad5 tc dpblc wblue" href="HTMLPage2.html">선택</a>
 			</td>
 			<td>
 				dfdsfsdfds인천 - 요코하마 (500.0 km)<br/>
@@ -107,58 +79,35 @@
 				화물: 300 t<br/>
 			</td>
 			<td>
-				<a class="select-button" href="HTMLPage2.html">선택</a>
+				<a class="pad5 tc dpblc wblue" href="HTMLPage2.html">선택</a>
 			</td>
 		</tr>
 	</table>
 
-	
-	<div id="parent">
-		<div id="child-left">
-			<div style="padding:3pt;">
+	<div class="red w70">
+		<div class="flft dpblc w80 red">
+			<div class="pad3">
 				인천 - 요코하마 (500.0 km)<br/>
 				보수: 50,000,000원<br/>
 				화물: 300 t<br/>
 			</div>
 		</div>
-		<div id="child-right">
-			<div style="padding:3pt; text-align:center;">
+		<div class="frgt dpblc w20 blk">
+			<div class="pad3 tc">
 				선택
 			</div>
 		</div>
 	</div>
 
-	<div id="parent">
-		<div id="child-left">
-			<div style="padding:3pt;">
+	<div class="red w70">
+		<div class="flft dpblc w80 red">
+			<div class="pad3">
 				노선 1
 			</div>
 		</div>
-		<div id="child-right">
-			<a style="padding:3pt;text-align:center;display:block;background-color: rgba(0,0,0,0.7);" href="HTMLPage2.html">선택</a>
+		<div class="frgt dpblc w20 blk">
+			<a class="pad3 tc dpblc blk" href="HTMLPage2.html">선택</a>
 		</div>
 	</div>
-
-    <!--
-    <div class="bottom">
-        <table style="width:100%">
-            <tr style="background-color:#cfcfcf">
-                <th>출발지</th>
-                <th>도착지</th>
-                <th>거리</th>
-                <th>보수</th>
-                <th>내용물</th>
-            </tr>
-            <tr>
-                <td>인천</td>
-                <td>요코하마</td>
-                <td>502.9 km</td>
-                <td>50,000,000원</td>
-                <td>일반 컨테이너 1,000개</td>
-            </tr>
-        </table>
-    </div>
-    <img src="heheh.png" />
-    -->
 </body>
 </html>
