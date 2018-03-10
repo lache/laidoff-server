@@ -1,0 +1,24 @@
+{
+  "name": "laidoff-server",
+  "version": "1.0.0",
+  "description": "Hi, there",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lacti/laidoff-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lacti/laidoff-server/issues"
+  },
+  "homepage": "https://github.com/lacti/laidoff-server#readme",
+  "dependencies": {
+    "c-struct": "0.0.4",
+    "net": "^1.0.2"
+  }
+}
