@@ -20,6 +20,7 @@
   "dependencies": {
     "dgram": "^1.0.1",
     "express": "^4.16.2",
+    "mysql": "^2.15.0",
     "net": "^1.0.2",
     "struct": "0.0.12"
   }
