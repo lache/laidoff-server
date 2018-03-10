@@ -4,11 +4,14 @@ const express = require('express')
 const raname = require('random-name')
 const uuidv1 = require('uuid/v1')
 const moment = require('moment')
+const numeral = require('numeral')
 
 const app = express()
+app.locals.moment = moment
+app.locals.numeral = numeral
+
 app.use(express.static('html'))
 app.set('view engine', 'pug')
-app.locals.moment = moment
 
 const userCache = {}
 
@@ -45,7 +48,7 @@ const findMission = () =>
 
 app.get('/', (req, res) => 
     findOrCreateUser(req.query.u || uuidv1())
-        .then(u => res.render('intro', {guid: u.guid}))
+        .then(u => res.render('intro', {user: u}))
         .catch(console.log))
 
 app.get('/idle', (req, res) => 
