@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/lacti/laidoff-server#readme",
   "dependencies": {
-    "c-struct": "0.0.4",
-    "net": "^1.0.2"
+    "dgram": "^1.0.1",
+    "express": "^4.16.2",
+    "net": "^1.0.2",
+    "struct": "0.0.12"
   }
 }
