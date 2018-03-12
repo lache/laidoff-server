@@ -1,15 +1,16 @@
+const argv = require('yargs').argv
+const init = require('./init')
+
+if (argv.init) {
+  init.initialize()
+}
+
 const express = require('express')
 const raname = require('random-name')
 const uuidv1 = require('uuid/v1')
 const moment = require('moment')
 const numeral = require('numeral')
 const query = require('./query')
-const init = require('./init')
-const argv = require('yargs').argv
-
-if (argv.init) {
-  init.initialize()
-}
 
 const app = express()
 app.locals.moment = moment
