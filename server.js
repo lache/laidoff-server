@@ -1,13 +1,15 @@
-const db = require('./db')
 const express = require('express')
 const raname = require('random-name')
 const uuidv1 = require('uuid/v1')
 const moment = require('moment')
 const numeral = require('numeral')
+const query = require('./query')
+const init = require('./init')
+const argv = require('yargs').argv
 
-// Not today.
-// const Sqlite3 = require('better-sqlite3')
-// const db = new Sqlite3('ttl.db')
+if (argv.init) {
+  init.initialize()
+}
 
 const app = express()
 app.locals.moment = moment
@@ -18,130 +20,80 @@ app.set('view engine', 'pug')
 
 const userCache = {}
 
-const createUser = guid =>
-  db
-    .query(`INSERT INTO user (guid, name) VALUES (?, ?)`, [
-      guid,
-      `${raname.first()} ${raname.last()}`
-    ])
-    .then(_ =>
-      db.query(`INSERT INTO ship (user_id, name) VALUES (?, ?)`, [
-        _.insertId,
-        `${raname.middle()} ${raname.middle()}`
-      ])
-    )
+const createUser = guid => {
+  const userName = `${raname.first()} ${raname.last()}`
+  const shipName = `${raname.middle()} ${raname.middle()}`
+  const user = query.insertUser.run(guid, userName)
+  query.insertShip.run(user.lastInsertROWID, shipName)
+  return user.lastInsertROWID
+}
+const findUser = guid => query.findUser.get(guid)
+const earnGold = (guid, reward) => query.earnGold.run(reward, guid)
+const findOrCreateUser = guid => {
+  if (guid in userCache) {
+    return userCache[guid]
+  }
+  const userInDb = findUser(guid)
+  console.log(userInDb)
+  if (userInDb !== undefined) {
+    userCache[guid] = userInDb
+    return userInDb
+  }
+  createUser(guid)
+  return findOrCreateUser(guid)
+}
 
-const findUser = guid =>
-  db.queryOne(
-    `SELECT
-            u.user_id, u.guid, u.name AS user_name, u.gold,
-            s.ship_id, s.name AS ship_name, s.x, s.y, s.angle, s.oil
-        FROM ttl.user u
-            JOIN ttl.ship s ON u.user_id = s.user_id
-        WHERE u.guid = ?
-        LIMIT 1`,
-    [guid]
-  )
+const findMission = missionId => query.findMission.get(missionId)
+const findMissions = () => {
+  const result = query.findMissions.all()
+  const rows = []
+  let row = []
+  let index = 0
+  for (let each of result) {
+    row.push(each)
+    if (++index % 2 === 0) {
+      rows.push(row)
+      row = []
+    }
+  }
+  if (row.length > 0) {
+    rows.push(row)
+  }
+  console.log(rows)
+  return rows
+}
 
-const earnGold = (guid, reward) =>
-  db.query(`UPDATE user SET gold = gold + ? WHERE guid = ?`, [reward, guid])
+app.get('/', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  return res.render('intro', { user: u })
+})
 
-const findOrCreateUser = guid =>
-  guid in userCache
-    ? Promise.resolve(userCache[guid])
-    : findUser(guid).then(
-        u =>
-          u.user_id !== undefined
-            ? (userCache[guid] = u)
-            : createUser(guid).then(_ => findOrCreateUser(guid))
-      )
+app.get('/idle', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  return res.render('idle', { user: u })
+})
 
-const findMission = missionId =>
-  db.queryOne(
-    `SELECT
-            mission_id, reward,
-            dept.name AS dept_name, dept.x AS dept_x, dept.y AS dept_y,
-            arvl.name AS arvl_name, arvl.x AS arvl_x, arvl.y AS arvl_y
-        FROM ttl.mission m
-            JOIN ttl.region dept ON m.departure_id=dept.region_id
-            JOIN ttl.region arvl ON m.arrival_id=arvl.region_id
-        WHERE m.mission_id = ?`,
-    [missionId]
-  )
+app.get('/mission', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const m = findMissions()
+  return res.render('mission', { user: u, rows: m })
+})
 
-const findMissions = () =>
-  db
-    .query(
-      `SELECT
-            mission_id, reward,
-            dept.name AS dept_name, dept.x AS dept_x, dept.y AS dept_y,
-            arvl.name AS arvl_name, arvl.x AS arvl_x, arvl.y AS arvl_y
-        FROM ttl.mission m
-            JOIN ttl.region dept ON m.departure_id=dept.region_id
-            JOIN ttl.region arvl ON m.arrival_id=arvl.region_id`
-    )
-    .then(result => {
-      const rows = []
-      let row = []
-      let index = 0
-      for (let each of result) {
-        row.push(each)
-        if (++index % 2 === 0) {
-          rows.push(row)
-          row = []
-        }
-      }
-      if (row.length > 0) {
-        rows.push(row)
-      }
-      console.log(rows)
-      return rows
-    })
+app.get('/start', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const m = findMission(req.query.mission || 1)
+  return res.render('start', { user: u, mission: m })
+})
 
-app.get('/', (req, res) =>
-  findOrCreateUser(req.query.u || uuidv1())
-    .then(u => res.render('intro', { user: u }))
-    .catch(console.log)
-)
+app.get('/success', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const m = findMission(req.query.mission || 1)
+  earnGold(u.guid, m.reward)
+  delete userCache[u.guid]
+  return res.render('success', { user: u, mission: m })
+})
 
-app.get('/idle', (req, res) =>
-  findOrCreateUser(req.query.u || uuidv1())
-    .then(u => res.render('idle', { user: u }))
-    .catch(console.log)
-)
-
-app.get('/mission', (req, res) =>
-  findOrCreateUser(req.query.u || uuidv1())
-    .then(u =>
-      findMissions().then(m => res.render('mission', { user: u, rows: m }))
-    )
-    .catch(console.log)
-)
-
-app.get('/start', (req, res) =>
-  findOrCreateUser(req.query.u || uuidv1())
-    .then(u =>
-      findMission(req.query.mission || 1).then(m =>
-        res.render('start', { user: u, mission: m })
-      )
-    )
-    .catch(console.log)
-)
-
-app.get('/success', (req, res) =>
-  findOrCreateUser(req.query.u || uuidv1())
-    .then(u =>
-      findMission(req.query.mission || 1).then(m =>
-        earnGold(u.guid, m.reward).then(_ => {
-          delete userCache[u.guid]
-          return res.render('success', { user: u, mission: m })
-        })
-      )
-    )
-    .catch(console.log)
-)
-
-const port = process.argv.length === 1 ? 3000 : parseInt(process.argv[1])
+const port = argv.port || 3000
 app.listen(port, () => {
   console.log(`Starting on ${port} port!`)
 })
