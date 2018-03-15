@@ -11,6 +11,9 @@ const uuidv1 = require('uuid/v1')
 const moment = require('moment')
 const numeral = require('numeral')
 const query = require('./query')
+const dgram = require('dgram')
+const sea_udp_client = dgram.createSocket('udp4');
+const message = require('./message')
 
 const app = express()
 app.locals.moment = moment
@@ -64,8 +67,60 @@ const findMissions = () => {
   return rows
 }
 
+const findPort = portId => query.findPort.get(portId)
+const findPorts = () => {
+  const result = query.findPorts.all()
+  const rows = []
+  let row = []
+  let index = 0
+  for (let each of result) {
+    row.push(each)
+    if (++index % 3 === 0) {
+      rows.push(row)
+      row = []
+    }
+  }
+  if (row.length > 0) {
+    rows.push(row)
+  }
+  return rows
+}
+
+const spawnSeaObject = (id, x, y) => {
+  const buf = message.SpawnStruct.buffer()
+  for (var i = 0; i < buf.length; i++) {
+    buf[i] = 0
+  }
+  message.SpawnStruct.fields.type = 1
+  message.SpawnStruct.fields.id = id
+  message.SpawnStruct.fields.x = x
+  message.SpawnStruct.fields.y = y
+  sea_udp_client.send(Buffer.from(buf), 4000, 'localhost', (err) => {
+    if (err) {
+      console.error('sea udp client error:', err)
+    }
+  })
+}
+
+const teleportTo = (id, x, y) => {
+  const buf = message.TeleportToStruct.buffer()
+  for (var i = 0; i < buf.length; i++) {
+    buf[i] = 0
+  }
+  message.TeleportToStruct.fields.type = 2
+  message.TeleportToStruct.fields.id = id
+  message.TeleportToStruct.fields.x = x
+  message.TeleportToStruct.fields.y = y
+  sea_udp_client.send(Buffer.from(buf), 4000, 'localhost', (err) => {
+    if (err) {
+      console.error('sea udp client error:', err)
+    }
+  })
+}
+
 app.get('/', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
+  spawnSeaObject(u.guid, 0, 0)
   return res.render('intro', { user: u })
 })
 
@@ -92,6 +147,20 @@ app.get('/success', (req, res) => {
   earnGold(u.guid, m.reward)
   delete userCache[u.guid]
   return res.render('success', { user: u, mission: m })
+})
+
+app.get('/port', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const p = findPorts()
+  return res.render('port', { user: u, rows: p })
+})
+
+app.get('/movetoport', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const p = findPort(req.query.region || 1)
+  console.log('move to port', p.region_id, p.x, p.y)
+  teleportTo(u.guid, p.x, p.y)
+  return res.render('idle', { user: u })
 })
 
 const port = argv.port || 3000

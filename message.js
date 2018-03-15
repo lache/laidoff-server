@@ -14,6 +14,7 @@ const FullStateObjectStruct = Struct()
   .floatle('x')
   .floatle('y')
   .floatle('a')
+FullStateObjectStruct.allocate()
 
 const FullStateStruct = Struct()
   .word8Sle('type')
@@ -21,7 +22,32 @@ const FullStateStruct = Struct()
   .word8Sle('padding1')
   .word8Sle('padding2')
   .array('objects', 64, FullStateObjectStruct)
-
 FullStateStruct.allocate()
-const buf = FullStateStruct.buffer()
-console.log(buf)
+
+const SpawnStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .chars('id', 64)
+  .floatle('x')
+  .floatle('y')
+SpawnStruct.allocate()
+
+const TeleportToStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .chars('id', 64)
+  .floatle('x')
+  .floatle('y')
+TeleportToStruct.allocate()
+
+//const buf = FullStateStruct.buffer()
+//console.log(buf)
+
+module.exports = {
+  SpawnStruct,
+  TeleportToStruct,
+}

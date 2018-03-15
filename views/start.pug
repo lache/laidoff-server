@@ -9,7 +9,7 @@ html
     div.red.w70
       div.flft.dpblc.w80.red
         div.wspre.pad3
-          | #{mission.dept_name} - #{mission.arvl_name} (500.0 km)
+          | #{mission.dept_name} - #{mission.arvl_name} (#{numeral(mission.dist).format('0,0')} km)
           | 보수: #{numeral(mission.reward).format('0,0')}원
           | 화물: 300 t
       div.frgt.dpblc.w20.blk
