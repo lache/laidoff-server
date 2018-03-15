@@ -17,4 +17,5 @@ html
                             | 경도: #{col.x}
                             | 위도: #{col.y}
                         td
-                            a.pad5.tc.dpblc.wblue(href='/movetoport?u=' + user.guid + '&region=' + col.region_id) 선택
+                            a.pad5.tc.dpblc.wblue(href='/traveltoport?u=' + user.guid + '&region=' + col.region_id) 부드러운이동
+                            a.pad5.tc.dpblc.wblue(href='/teleporttoport?u=' + user.guid + '&region=' + col.region_id) 순간이동

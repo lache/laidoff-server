@@ -34,6 +34,16 @@ const SpawnStruct = Struct()
   .floatle('y')
 SpawnStruct.allocate()
 
+const TravelToStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .chars('id', 64)
+  .floatle('x')
+  .floatle('y')
+TravelToStruct.allocate()
+
 const TeleportToStruct = Struct()
   .word8Sle('type')
   .word8Sle('padding0')
@@ -49,5 +59,6 @@ TeleportToStruct.allocate()
 
 module.exports = {
   SpawnStruct,
+  TravelToStruct,
   TeleportToStruct,
 }

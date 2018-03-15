@@ -102,12 +102,28 @@ const spawnSeaObject = (id, x, y) => {
   })
 }
 
-const teleportTo = (id, x, y) => {
+const travelTo = (id, x, y) => {
   const buf = message.TeleportToStruct.buffer()
   for (var i = 0; i < buf.length; i++) {
     buf[i] = 0
   }
   message.TeleportToStruct.fields.type = 2
+  message.TeleportToStruct.fields.id = id
+  message.TeleportToStruct.fields.x = x
+  message.TeleportToStruct.fields.y = y
+  sea_udp_client.send(Buffer.from(buf), 4000, 'localhost', (err) => {
+    if (err) {
+      console.error('sea udp client error:', err)
+    }
+  })
+}
+
+const teleportTo = (id, x, y) => {
+  const buf = message.TeleportToStruct.buffer()
+  for (var i = 0; i < buf.length; i++) {
+    buf[i] = 0
+  }
+  message.TeleportToStruct.fields.type = 3
   message.TeleportToStruct.fields.id = id
   message.TeleportToStruct.fields.x = x
   message.TeleportToStruct.fields.y = y
@@ -155,10 +171,18 @@ app.get('/port', (req, res) => {
   return res.render('port', { user: u, rows: p })
 })
 
-app.get('/movetoport', (req, res) => {
+app.get('/traveltoport', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
   const p = findPort(req.query.region || 1)
-  console.log('move to port', p.region_id, p.x, p.y)
+  console.log('travel to port', p.region_id, p.x, p.y)
+  travelTo(u.guid, p.x, p.y)
+  return res.render('idle', { user: u })
+})
+
+app.get('/teleporttoport', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const p = findPort(req.query.region || 1)
+  console.log('teleport to port', p.region_id, p.x, p.y)
   teleportTo(u.guid, p.x, p.y)
   return res.render('idle', { user: u })
 })
