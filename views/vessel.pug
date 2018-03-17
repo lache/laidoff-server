@@ -1,0 +1,37 @@
+html
+  include ./includes/head.pug
+  body.mar00.fwht.bsea.f1
+    include ./includes/stat.pug
+    include ./includes/topmenu.pug
+    h2 선박
+    h4 선박을 빌리거나 직접 건조 수주를 내릴 수 있습니다.
+    h3 대여
+    a.dpinblk.red.pad3(href='script:toggle_world()')
+      div.wspre
+        | 등급: 피더 (1,000 TEU)
+        | 속도: 15-20노트
+        | 진수년도: 2008년 (10년)
+        | 대여비용: 1천만원/일
+    a.dpinblk.red.pad3(href='script:toggle_world()')
+      div.wspre
+        | 등급: 패너맥스 (3,000 TEU)
+        | 속도: 15-20노트
+        | 진수년도: 2010년 (12년)
+        | 대여비용: 2천만원/일
+    h3 건조 수주
+    a.dpinblk.red.pad3(href='script:toggle_world()')
+      div.wspre
+        | 등급: 뉴패너맥스
+        | 엔진: 디젤
+        | 속도: 16-22노트
+        | 운송량: 14,000 TEU
+        | 건조비용: 1,200억원
+        | 계약금: 10%
+    a.dpinblk.red.pad3(href='script:toggle_world()')
+      div.wspre
+        | 등급: ULCV
+        | 엔진: 디젤
+        | 속도: 15-20노트
+        | 운송량: 21,000 TEU
+        | 건조비용: 4,200억원
+        | 계약금: 10%

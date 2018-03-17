@@ -145,6 +145,16 @@ app.get('/idle', (req, res) => {
   return res.render('idle', { user: u })
 })
 
+app.get('/loan', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  return res.render('loan', { user: u })
+})
+
+app.get('/vessel', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  return res.render('vessel', { user: u })
+})
+
 app.get('/mission', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
   const m = findMissions()

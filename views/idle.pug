@@ -2,10 +2,16 @@ html
   include ./includes/head.pug
   body.mar00.fwht.bsea.f1
     include ./includes/stat.pug
-
-    a.dpinblk.red.pad5(href='/mission?u=' + user.guid) 임무 받기
-    a.dpinblk.red.pad5(href='/?u=' + user.guid) 공지사항
-    a.dpinblk.red.pad5(href='/idle?u=' + user.guid) 줄려 집에 보내줘
-    a.dpinblk.red.pad5(href='/port?u=' + user.guid) 항구
-    a.dpinblk.red.pad5(href='script:toggle_world_map()') 세계지도
-    a.dpinblk.red.pad5(href='script:toggle_world()') 월드
+    include ./includes/topmenu.pug
+    h3 게임 방법
+    ul
+      li 돈을 빌린다. --- <대출>
+      li 배를 빌린다. --- <선박>
+      li 임무를 고른다. --- <임무>
+      li 임무 수행 보상을 통해 돈을 번다.
+      li 빚을 갚는다.
+      li 배도 직접 구입한다.
+      li <핵심>: 막대한 부로 다른 플레이어의 플레이를 방해하며 쾌감을 느낀다.
+    h3 시간
+    ul
+      li 게임 내 시간과 현실 시간은 동일하게 흐릅니다.
