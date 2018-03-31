@@ -12,7 +12,7 @@ const moment = require('moment')
 const numeral = require('numeral')
 const query = require('./query')
 const dgram = require('dgram')
-const sea_udp_client = dgram.createSocket('udp4');
+const seaUdpClient = dgram.createSocket('udp4')
 const message = require('./message')
 
 const app = express()
@@ -30,6 +30,11 @@ const createUser = guid => {
   const user = query.insertUser.run(guid, userName)
   query.insertShip.run(user.lastInsertROWID, shipName)
   return user.lastInsertROWID
+}
+const createShip = (guid, shipName) => {
+  const user = findOrCreateUser(guid)
+  const ship = query.insertShip.run(user.user_id, shipName)
+  return ship.lastInsertROWID
 }
 const findUser = guid => query.findUser.get(guid)
 const earnGold = (guid, reward) => query.earnGold.run(reward, guid)
@@ -88,14 +93,14 @@ const findPorts = () => {
 
 const spawnSeaObject = (id, x, y) => {
   const buf = message.SpawnStruct.buffer()
-  for (var i = 0; i < buf.length; i++) {
+  for (let i = 0; i < buf.length; i++) {
     buf[i] = 0
   }
   message.SpawnStruct.fields.type = 1
   message.SpawnStruct.fields.id = id
   message.SpawnStruct.fields.x = x
   message.SpawnStruct.fields.y = y
-  sea_udp_client.send(Buffer.from(buf), 4000, 'localhost', (err) => {
+  seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
     if (err) {
       console.error('sea udp client error:', err)
     }
@@ -104,14 +109,14 @@ const spawnSeaObject = (id, x, y) => {
 
 const travelTo = (id, x, y) => {
   const buf = message.TeleportToStruct.buffer()
-  for (var i = 0; i < buf.length; i++) {
+  for (let i = 0; i < buf.length; i++) {
     buf[i] = 0
   }
   message.TeleportToStruct.fields.type = 2
   message.TeleportToStruct.fields.id = id
   message.TeleportToStruct.fields.x = x
   message.TeleportToStruct.fields.y = y
-  sea_udp_client.send(Buffer.from(buf), 4000, 'localhost', (err) => {
+  seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
     if (err) {
       console.error('sea udp client error:', err)
     }
@@ -120,14 +125,14 @@ const travelTo = (id, x, y) => {
 
 const teleportTo = (id, x, y) => {
   const buf = message.TeleportToStruct.buffer()
-  for (var i = 0; i < buf.length; i++) {
+  for (let i = 0; i < buf.length; i++) {
     buf[i] = 0
   }
   message.TeleportToStruct.fields.type = 3
   message.TeleportToStruct.fields.id = id
   message.TeleportToStruct.fields.x = x
   message.TeleportToStruct.fields.y = y
-  sea_udp_client.send(Buffer.from(buf), 4000, 'localhost', (err) => {
+  seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
     if (err) {
       console.error('sea udp client error:', err)
     }
@@ -194,6 +199,30 @@ app.get('/teleporttoport', (req, res) => {
   const p = findPort(req.query.region || 1)
   console.log('teleport to port', p.region_id, p.x, p.y)
   teleportTo(u.guid, p.x, p.y)
+  return res.render('idle', { user: u })
+})
+
+const sendSpawnShip = (id, name, x, y) => {
+  const buf = message.SpawnShipStruct.buffer()
+  for (let i = 0; i < buf.length; i++) {
+    buf[i] = 0
+  }
+  message.SpawnShipStruct.fields.type = 4
+  message.SpawnShipStruct.fields.id = id
+  message.SpawnShipStruct.fields.name = name
+  message.SpawnShipStruct.fields.x = x
+  message.SpawnShipStruct.fields.y = y
+  seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
+    if (err) {
+      console.error('sea udp SpawnShipStruct client error:', err)
+    }
+  })
+}
+
+app.get('/purchase_new_ship', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const shipId = createShip(u.guid, u.user_name)
+  sendSpawnShip(shipId, u.user_name, req.get('X-Lng'), req.get('X-Lat'))
   return res.render('idle', { user: u })
 })
 
