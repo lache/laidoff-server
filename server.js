@@ -38,6 +38,7 @@ const createShip = (guid, shipName) => {
 }
 const findUser = guid => query.findUser.get(guid)
 const earnGold = (guid, reward) => query.earnGold.run(reward, guid)
+const spendGold = (guid, cost) => query.spendGold.run(cost, guid)
 const findOrCreateUser = guid => {
   if (guid in userCache) {
     return userCache[guid]
@@ -223,7 +224,10 @@ app.get('/purchase_new_ship', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
   const shipId = createShip(u.guid, u.user_name)
   sendSpawnShip(shipId, u.user_name, req.get('X-Lng'), req.get('X-Lat'))
-  return res.render('idle', { user: u })
+  spendGold(u.guid, 1000000)
+  delete userCache[u.guid]
+  const uAfter = findOrCreateUser(req.query.u || uuidv1())
+  return res.render('idle', { user: uAfter })
 })
 
 const port = argv.port || 3000

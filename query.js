@@ -11,6 +11,7 @@ FROM user u
 WHERE u.guid = ?
 LIMIT 1`)
 const earnGold = db.prepare(`UPDATE user SET gold = gold + ? WHERE guid = ?`)
+const spendGold = db.prepare(`UPDATE user SET gold = gold - ? WHERE guid = ?`)
 const findMission = db.prepare(`SELECT
   mission_id, reward,
   dept.name AS dept_name, dept.x AS dept_x, dept.y AS dept_y,
@@ -40,6 +41,7 @@ module.exports = {
   insertShip,
   findUser,
   earnGold,
+  spendGold,
   findMission,
   findMissions,
   findPort,
