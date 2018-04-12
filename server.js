@@ -230,6 +230,31 @@ app.get('/purchase_new_ship', (req, res) => {
   return res.render('idle', { user: uAfter })
 })
 
+app.get('/newPortRegistered', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const seaports = [
+    {
+      name: '부산항',
+      img: 'remtex/seaport-busan.png'
+    },
+    {
+      name: '울산항',
+      img: 'remtex/seaport-ulsan.png'
+    },
+    {
+      name: '싱가포르항',
+      img: 'remtex/seaport-singapore.png'
+    }
+  ]
+  const seaport = seaports[Math.floor(Math.random() * seaports.length)]
+  return res.render('testNewPort', { user: u, seaport: seaport })
+})
+
+app.get('/test*', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  return res.render(req.url.substring(1, req.url.length), { user: u })
+})
+
 const port = argv.port || 3000
 app.listen(port, () => {
   console.log(`Starting on ${port} port!`)
