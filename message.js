@@ -65,9 +65,6 @@ const SpawnShipStruct = Struct()
   .floatle('y')
 SpawnShipStruct.allocate()
 
-//const buf = FullStateStruct.buffer()
-//console.log(buf)
-
 module.exports = {
   SpawnStruct,
   TravelToStruct,
