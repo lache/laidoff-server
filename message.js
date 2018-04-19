@@ -65,9 +65,20 @@ const SpawnShipStruct = Struct()
   .floatle('y')
 SpawnShipStruct.allocate()
 
+const SpawnShipReplyStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .word32Sle('shipId')
+  .word32Sle('port1Id')
+  .word32Sle('port2Id')
+SpawnShipReplyStruct.allocate()
+
 module.exports = {
   SpawnStruct,
   TravelToStruct,
   TeleportToStruct,
   SpawnShipStruct,
+  SpawnShipReplyStruct,
 }

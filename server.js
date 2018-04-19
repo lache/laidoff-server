@@ -36,6 +36,13 @@ const createShip = (guid, shipName) => {
   const ship = query.insertShip.run(user.user_id, shipName)
   return ship.lastInsertROWID
 }
+const createShiproute = (port1Id, port2Id) => {
+  const shiproute = query.insertShiproute.run(port1Id, port2Id)
+  return shiproute.lastInsertROWID
+}
+const setShipShiproute = (shipId, shiprouteId) => {
+  query.setShipShiproute.run(shiprouteId, shipId)
+}
 const findUser = guid => query.findUser.get(guid)
 const earnGold = (guid, reward) => query.earnGold.run(reward, guid)
 const spendGold = (guid, cost) => query.spendGold.run(cost, guid)
@@ -256,6 +263,19 @@ app.get('/test*', (req, res) => {
 })
 
 const port = argv.port || 3000
+seaUdpClient.on('message', function(buf, remote) {
+  // console.log(remote.address + ':' + remote.port + ' - ' + buf)
+  message.SpawnShipReplyStruct._setBuff(buf)
+  console.log('UDP type: ' + message.SpawnShipReplyStruct.fields.type)
+  console.log('UDP ship_id: ' + message.SpawnShipReplyStruct.fields.shipId)
+  console.log('UDP port1_id: ' + message.SpawnShipReplyStruct.fields.port1Id)
+  console.log('UDP port2_id: ' + message.SpawnShipReplyStruct.fields.port2Id)
+  const shiprouteId = createShiproute(
+    message.SpawnShipReplyStruct.fields.port1Id,
+    message.SpawnShipReplyStruct.fields.port2Id
+  )
+  setShipShiproute(message.SpawnShipReplyStruct.fields.shipId, shiprouteId)
+})
 app.listen(port, () => {
   console.log(`Starting on ${port} port!`)
 })

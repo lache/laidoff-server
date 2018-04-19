@@ -3,6 +3,8 @@ const db = new Sqlite3('ttl.db')
 
 const insertUser = db.prepare(`INSERT INTO user (guid, name) VALUES (?, ?)`)
 const insertShip = db.prepare(`INSERT INTO ship (user_id, name) VALUES (?, ?)`)
+const insertShiproute = db.prepare(`INSERT INTO shiproute (port1_id, port2_id) VALUES (?, ?)`)
+const setShipShiproute = db.prepare(`UPDATE ship SET route_id = ? WHERE ship_id = ?`)
 const findUser = db.prepare(`SELECT
   u.user_id, u.guid, u.name AS user_name, u.gold,
   s.ship_id, s.name AS ship_name, s.x, s.y, s.angle, s.oil
@@ -46,4 +48,6 @@ module.exports = {
   findMissions,
   findPort,
   findPorts,
+  insertShiproute,
+  setShipShiproute,
 }
