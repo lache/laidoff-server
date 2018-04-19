@@ -262,20 +262,40 @@ app.get('/test*', (req, res) => {
   return res.render(req.url.substring(1, req.url.length), { user: u })
 })
 
-const port = argv.port || 3000
-seaUdpClient.on('message', function(buf, remote) {
-  // console.log(remote.address + ':' + remote.port + ' - ' + buf)
-  message.SpawnShipReplyStruct._setBuff(buf)
-  console.log('UDP type: ' + message.SpawnShipReplyStruct.fields.type)
-  console.log('UDP ship_id: ' + message.SpawnShipReplyStruct.fields.shipId)
-  console.log('UDP port1_id: ' + message.SpawnShipReplyStruct.fields.port1Id)
-  console.log('UDP port2_id: ' + message.SpawnShipReplyStruct.fields.port2Id)
-  const shiprouteId = createShiproute(
-    message.SpawnShipReplyStruct.fields.port1Id,
-    message.SpawnShipReplyStruct.fields.port2Id
-  )
-  setShipShiproute(message.SpawnShipReplyStruct.fields.shipId, shiprouteId)
+seaUdpClient.on('listening', () => {
+  const address = seaUdpClient.address();
+  console.log(`UDP server listening ${address.address}:${address.port}`)
 })
+
+seaUdpClient.on('message', function(buf, remote) {
+  if (buf[0] === 1) {
+    // SpawnShipReply
+    console.log(
+      `SpawnShipReply from ${remote.address}:${remote.port} (len=${buf.length})`
+    )
+    message.SpawnShipReplyStruct._setBuff(buf)
+    console.log('UDP type: ' + message.SpawnShipReplyStruct.fields.type)
+    console.log('UDP ship_id: ' + message.SpawnShipReplyStruct.fields.shipId)
+    console.log('UDP port1_id: ' + message.SpawnShipReplyStruct.fields.port1Id)
+    console.log('UDP port2_id: ' + message.SpawnShipReplyStruct.fields.port2Id)
+    const shiprouteId = createShiproute(
+      message.SpawnShipReplyStruct.fields.port1Id,
+      message.SpawnShipReplyStruct.fields.port2Id
+    )
+    setShipShiproute(message.SpawnShipReplyStruct.fields.shipId, shiprouteId)
+  } else if (buf[0] === 2) {
+    // RecoverAllShips
+    console.log(
+      `RecoverAllShips from ${remote.address}:${remote.port} (len=${
+        buf.length
+      })`
+    )
+  }
+})
+const udpPort = argv.udpport || 3003
+seaUdpClient.bind(udpPort)
+
+const port = argv.port || 3000
 app.listen(port, () => {
   console.log(`Starting on ${port} port!`)
 })
