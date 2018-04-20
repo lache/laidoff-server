@@ -4,52 +4,29 @@ html
     include ./includes/stat.pug
     include ./includes/topmenu.pug
     a.dpinblk.red.pad3(href='/purchase_new_ship?u=' + user.guid + '&currentFirstKey=' + firstKey)
-      div.wspre 새 선박 구입 (테스트)
-    a.dpinblk.red.pad3(href='/vessel?u=' + user.guid + '&lastKey=' + firstKey + '&currentFirstKey=' + firstKey)
-      div.wspre 이전
-    a.dpinblk.red.pad3(href='/vessel?u=' + user.guid + '&firstKey=' + lastKey + '&currentFirstKey=' + firstKey)
-      div.wspre 다음
-    table.solidborder
-      thead
-        td ID
-        td Name
-        td Shiproute ID
-      each row in rows
-        tr
-          td #{row.ship_id}
-          td #{row.name}
-          td #{row.shiproute_id}
-          td
-            a.dpinblk.red.pad3(href='/sell_vessel?u=' + user.guid + '&s=' + row.ship_id + '&currentFirstKey=' + firstKey) 매각
-    h2 선박
-    h4 선박을 빌리거나 직접 건조 수주를 내릴 수 있습니다.
-    h3 대여
-    a.dpinblk.red.pad3(href='script:toggle_world()')
-      div.wspre
-        | 등급: 피더 (1,000 TEU)
-        | 속도: 15-20노트
-        | 진수년도: 2008년 (10년)
-        | 대여비용: 1천만원/일
-    a.dpinblk.red.pad3(href='script:toggle_world()')
-      div.wspre
-        | 등급: 패너맥스 (3,000 TEU)
-        | 속도: 15-20노트
-        | 진수년도: 2010년 (12년)
-        | 대여비용: 2천만원/일
-    h3 건조 수주
-    a.dpinblk.red.pad3(href='script:toggle_world()')
-      div.wspre
-        | 등급: 뉴패너맥스
-        | 엔진: 디젤
-        | 속도: 16-22노트
-        | 운송량: 14,000 TEU
-        | 건조비용: 1,200억원
-        | 계약금: 10%
-    a.dpinblk.red.pad3(href='script:toggle_world()')
-      div.wspre
-        | 등급: ULCV
-        | 엔진: 디젤
-        | 속도: 15-20노트
-        | 운송량: 21,000 TEU
-        | 건조비용: 4,200억원
-        | 계약금: 10%
+      | 새 선박 구입 (테스트)
+    div.floatright
+      div.alignright
+        a.dpinblk.red.pad3(href='/vessel?u=' + user.guid + '&lastKey=' + firstKey + '&currentFirstKey=' + firstKey)
+          | 이전
+        a.dpinblk.red.pad3(href='/vessel?u=' + user.guid + '&firstKey=' + lastKey + '&currentFirstKey=' + firstKey)
+          | 다음
+        a.dpinblk.red.pad3(href='script:set_track_object_ship_id(0)')
+          | 추적 해제
+      table.solidborder.nowrap
+        thead
+          td ID, Name, Route
+          td 매각
+          td 추적
+        each row in rows
+          tr
+            td
+              | #{row.ship_id}
+              br
+              | #{row.name}
+              br
+              | Route: #{row.shiproute_id}
+            td
+              a.dpinblk.red.pad3(href='/sell_vessel?u=' + user.guid + '&s=' + row.ship_id + '&currentFirstKey=' + firstKey) 매각
+            td
+              a.dpinblk.red.pad3(href='script:set_track_object_ship_id(' + row.ship_id + ')') 추적

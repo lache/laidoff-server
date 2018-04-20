@@ -18,7 +18,7 @@ const findUser = db.prepare(`SELECT
   u.user_id, u.guid, u.name AS user_name, u.gold,
   s.ship_id, s.name AS ship_name, s.x, s.y, s.angle, s.oil
 FROM user u
-  JOIN ship s ON u.user_id = s.user_id
+  LEFT JOIN ship s ON u.user_id = s.user_id
 WHERE u.guid = ?
 LIMIT 1`)
 const findShip = db.prepare(`SELECT * from ship WHERE ship_id = ?`)

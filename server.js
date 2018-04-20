@@ -26,9 +26,10 @@ const userCache = {}
 
 const createUser = guid => {
   const userName = `${raname.first()} ${raname.last()}`
-  const shipName = `${raname.middle()} ${raname.middle()}`
   const user = query.insertUser.run(guid, userName)
-  query.insertShip.run(user.lastInsertROWID, shipName)
+  // no initial ship
+  // const shipName = `${raname.middle()} ${raname.middle()}`
+  // query.insertShip.run(user.lastInsertROWID, shipName)
   return user.lastInsertROWID
 }
 const createShip = (guid, shipName) => {
@@ -208,7 +209,7 @@ app.get('/sell_vessel', (req, res) => {
 
 app.get('/vessel', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
-  const limit = 6
+  const limit = 5
   let s
   if (req.query.firstKey) {
     // user pressed 'next' page button
@@ -239,6 +240,12 @@ app.get('/vessel', (req, res) => {
   ) {
     // refresh current page
     s = findUserShipsScrollDown(u.user_id, req.query.currentFirstKey - 1, limit)
+    if (s.length === 0) {
+      // the only element in this page is removed
+      // go to previous page
+      s = findUserShipsScrollUp(u.user_id, req.query.currentFirstKey, limit)
+      s.reverse()
+    }
   } else {
     // default: fetch first page
     s = findUserShipsScrollDown(u.user_id, 0, limit)
@@ -316,7 +323,8 @@ const sendSpawnShip = (id, name, x, y, port1Id = -1, port2Id = -1) => {
 
 app.get('/purchase_new_ship', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
-  const shipId = createShip(u.guid, u.user_name)
+  const shipName = `${raname.middle()} ${raname.middle()}`
+  const shipId = createShip(u.guid, shipName)
   sendSpawnShip(shipId, u.user_name, req.get('X-Lng'), req.get('X-Lat'))
   spendGold(u.guid, 1000000)
   delete userCache[u.guid]
@@ -357,11 +365,6 @@ app.get('/test*', (req, res) => {
   return res.render(req.url.substring(1, req.url.length), { user: u })
 })
 
-seaUdpClient.on('listening', () => {
-  const address = seaUdpClient.address()
-  console.log(`UDP server listening ${address.address}:${address.port}`)
-})
-
 seaUdpClient.on('message', function(buf, remote) {
   if (buf[0] === 1) {
     // SpawnShipReply
@@ -385,12 +388,15 @@ seaUdpClient.on('message', function(buf, remote) {
         buf.length
       })`
     )
-    console.log('Recovering...')
+    console.log('A new sea-server instance requested recovering.')
+    console.log('Recovering in progress...')
+    let count = 0
     listShipShiproute(row => {
       // console.log(row)
       sendSpawnShip(row.ship_id, '', 0, 0, row.port1_id, row.port2_id)
+      count++
     })
-    console.log('Recovering Done.')
+    console.log(`Recovering Done. ${count} ship(s) recovered.`)
   } else if (buf[0] === 3) {
     // Arrival
     message.ArrivalStruct._setBuff(buf)
@@ -411,10 +417,16 @@ seaUdpClient.on('message', function(buf, remote) {
     }
   }
 })
+
+seaUdpClient.on('listening', () => {
+  const address = seaUdpClient.address()
+  console.log(`UDP server listening ${address.address}:${address.port}!`)
+})
+
 const udpPort = argv.udpport || 3003
 seaUdpClient.bind(udpPort)
 
 const port = argv.port || 3000
 app.listen(port, () => {
-  console.log(`Starting on ${port} port!`)
+  console.log(`TCP server listening on ${port} port!`)
 })
