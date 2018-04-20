@@ -14,7 +14,7 @@ const query = require('./query')
 const dgram = require('dgram')
 const seaUdpClient = dgram.createSocket('udp4')
 const message = require('./message')
-
+const url = require('url')
 const app = express()
 app.locals.moment = moment
 app.locals.numeral = numeral
@@ -36,6 +36,9 @@ const createShip = (guid, shipName) => {
   const ship = query.insertShip.run(user.user_id, shipName)
   return ship.lastInsertROWID
 }
+const deleteShip = shipId => {
+  query.deleteShip.run(shipId)
+}
 const createShiproute = (port1Id, port2Id) => {
   const shiproute = query.insertShiproute.run(port1Id, port2Id)
   return shiproute.lastInsertROWID
@@ -43,15 +46,23 @@ const createShiproute = (port1Id, port2Id) => {
 const setShipShiproute = (shipId, shiprouteId) => {
   query.setShipShiproute.run(shiprouteId, shipId)
 }
+const listShipShiproute = onRow => {
+  for (var row of query.listShipShiproute.iterate()) {
+    onRow(row)
+  }
+}
+const findShip = shipId => query.findShip.get(shipId)
 const findUser = guid => query.findUser.get(guid)
+const findUserGuid = userId => query.findUserGuid.get(userId)
 const earnGold = (guid, reward) => query.earnGold.run(reward, guid)
+const earnGoldUser = (userId, reward) => query.earnGoldUser.run(reward, userId)
 const spendGold = (guid, cost) => query.spendGold.run(cost, guid)
 const findOrCreateUser = guid => {
   if (guid in userCache) {
     return userCache[guid]
   }
   const userInDb = findUser(guid)
-  console.log(userInDb)
+  // console.log(userInDb)
   if (userInDb !== undefined) {
     userCache[guid] = userInDb
     return userInDb
@@ -59,7 +70,12 @@ const findOrCreateUser = guid => {
   createUser(guid)
   return findOrCreateUser(guid)
 }
-
+const findUserShipsScrollDown = (userId, lastUserId, count) => {
+  return query.findUserShipsScrollDown.all(userId, lastUserId, count)
+}
+const findUserShipsScrollUp = (userId, firstUserId, count) => {
+  return query.findUserShipsScrollUp.all(userId, firstUserId, count)
+}
 const findMission = missionId => query.findMission.get(missionId)
 const findMissions = () => {
   const result = query.findMissions.all()
@@ -163,9 +179,75 @@ app.get('/loan', (req, res) => {
   return res.render('loan', { user: u })
 })
 
+app.get('/sell_vessel', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  if (req.query.s) {
+    deleteShip(req.query.s)
+    const buf = message.DeleteShipStruct.buffer()
+    for (let i = 0; i < buf.length; i++) {
+      buf[i] = 0
+    }
+    message.DeleteShipStruct.fields.type = 5 // Delete Ship
+    message.DeleteShipStruct.fields.shipId = req.query.s
+    seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
+      if (err) {
+        console.error('sea udp client error:', err)
+      }
+    })
+  }
+  res.redirect(
+    url.format({
+      pathname: '/vessel',
+      query: {
+        u: u.guid,
+        currentFirstKey: req.query.currentFirstKey
+      }
+    })
+  )
+})
+
 app.get('/vessel', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
-  return res.render('vessel', { user: u })
+  const limit = 6
+  let s
+  if (req.query.firstKey) {
+    // user pressed 'next' page button
+    s = findUserShipsScrollDown(u.user_id, req.query.firstKey, limit)
+    if (s.length === 0) {
+      // no next elements available. stay on the current page
+      s = findUserShipsScrollDown(
+        u.user_id,
+        req.query.currentFirstKey - 1,
+        limit
+      )
+    }
+  } else if (req.query.lastKey) {
+    // user pressed 'prev' page button
+    s = findUserShipsScrollUp(u.user_id, req.query.lastKey, limit)
+    s.reverse()
+    if (s.length === 0) {
+      // no prev elements available. stay on the current page
+      s = findUserShipsScrollDown(
+        u.user_id,
+        req.query.currentFirstKey - 1,
+        limit
+      )
+    }
+  } else if (req.query.currentFirstKey) {
+    // refresh current page
+    s = findUserShipsScrollDown(u.user_id, req.query.currentFirstKey - 1, limit)
+  } else {
+    // default: fetch first page
+    s = findUserShipsScrollDown(u.user_id, 0, limit)
+  }
+  const firstKey = s.length > 0 ? s[0].ship_id : undefined
+  const lastKey = s.length > 0 ? s[s.length - 1].ship_id : undefined
+  return res.render('vessel', {
+    user: u,
+    rows: s,
+    firstKey: firstKey,
+    lastKey: lastKey
+  })
 })
 
 app.get('/mission', (req, res) => {
@@ -210,7 +292,7 @@ app.get('/teleporttoport', (req, res) => {
   return res.render('idle', { user: u })
 })
 
-const sendSpawnShip = (id, name, x, y) => {
+const sendSpawnShip = (id, name, x, y, port1Id = -1, port2Id = -1) => {
   const buf = message.SpawnShipStruct.buffer()
   for (let i = 0; i < buf.length; i++) {
     buf[i] = 0
@@ -220,6 +302,8 @@ const sendSpawnShip = (id, name, x, y) => {
   message.SpawnShipStruct.fields.name = name
   message.SpawnShipStruct.fields.x = x
   message.SpawnShipStruct.fields.y = y
+  message.SpawnShipStruct.fields.port1Id = port1Id
+  message.SpawnShipStruct.fields.port2Id = port2Id
   seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
     if (err) {
       console.error('sea udp SpawnShipStruct client error:', err)
@@ -234,7 +318,15 @@ app.get('/purchase_new_ship', (req, res) => {
   spendGold(u.guid, 1000000)
   delete userCache[u.guid]
   const uAfter = findOrCreateUser(req.query.u || uuidv1())
-  return res.render('idle', { user: uAfter })
+  res.redirect(
+    url.format({
+      pathname: '/vessel',
+      query: {
+        u: uAfter.guid,
+        currentFirstKey: req.query.currentFirstKey
+      }
+    })
+  )
 })
 
 app.get('/newPortRegistered', (req, res) => {
@@ -263,7 +355,7 @@ app.get('/test*', (req, res) => {
 })
 
 seaUdpClient.on('listening', () => {
-  const address = seaUdpClient.address();
+  const address = seaUdpClient.address()
   console.log(`UDP server listening ${address.address}:${address.port}`)
 })
 
@@ -290,6 +382,30 @@ seaUdpClient.on('message', function(buf, remote) {
         buf.length
       })`
     )
+    console.log('Recovering...')
+    listShipShiproute(row => {
+      // console.log(row)
+      sendSpawnShip(row.ship_id, '', 0, 0, row.port1_id, row.port2_id)
+    })
+    console.log('Recovering Done.')
+  } else if (buf[0] === 3) {
+    // Arrival
+    message.ArrivalStruct._setBuff(buf)
+    // console.log(
+    //   `Arrival ship id ${message.ArrivalStruct.fields.shipId} from ${
+    //     remote.address
+    //   }:${remote.port} (len=${buf.length})`
+    // )
+    const ship = findShip(message.ArrivalStruct.fields.shipId)
+    if (ship) {
+      earnGoldUser(ship.user_id, 1)
+      const guid = findUserGuid(ship.user_id).guid
+      delete userCache[guid]
+    } else {
+      console.error(
+        `Could not find ship with id ${message.ArrivalStruct.fields.shipId}!`
+      )
+    }
   }
 })
 const udpPort = argv.udpport || 3003
