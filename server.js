@@ -233,7 +233,10 @@ app.get('/vessel', (req, res) => {
         limit
       )
     }
-  } else if (req.query.currentFirstKey) {
+  } else if (
+    req.query.currentFirstKey &&
+    req.query.currentFirstKey !== 'undefined'
+  ) {
     // refresh current page
     s = findUserShipsScrollDown(u.user_id, req.query.currentFirstKey - 1, limit)
   } else {
