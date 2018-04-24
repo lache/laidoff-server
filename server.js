@@ -3,6 +3,8 @@ const init = require('./init')
 
 if (argv.init) {
   init.initialize()
+  console.log(`Initialized.`)
+  process.exit(0)
 }
 
 const express = require('express')
