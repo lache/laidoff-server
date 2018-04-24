@@ -14,19 +14,12 @@ html
         a.dpinblk.red.pad3(href='script:set_track_object_ship_id(0)')
           | 추적 해제
       table.solidborder.nowrap
-        thead
-          td ID, Name, Route
-          td 매각
-          td 추적
         each row in rows
           tr
             td
-              | #{row.ship_id}
+              | [#{row.ship_id}] #{row.name} [#{row.shiproute_id}]
               br
-              | #{row.name}
-              br
-              | Route: #{row.shiproute_id}
-            td
               a.dpinblk.red.pad3(href='/sell_vessel?u=' + user.guid + '&s=' + row.ship_id + '&currentFirstKey=' + firstKey) 매각
-            td
               a.dpinblk.red.pad3(href='script:set_track_object_ship_id(' + row.ship_id + ')') 추적
+              a.dpinblk.red.pad3(href='script:request_waypoints(' + row.ship_id + ')') 항로
+
