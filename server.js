@@ -211,7 +211,7 @@ app.get('/sell_vessel', (req, res) => {
 
 app.get('/vessel', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
-  const limit = 3
+  const limit = 5
   let s
   if (req.query.firstKey) {
     // user pressed 'next' page button
