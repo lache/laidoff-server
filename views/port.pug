@@ -19,9 +19,10 @@ html
         each row in rows
           tr
             td #{row.name}
-            td
+            //td
               | #{row.x}
               br
               | #{row.y}
-            td
-              a.pad3.tc.dpblc.wblue(href='/teleporttoport?u=' + user.guid + '&region=' + row.region_id) 보기
+            td.nowrap
+                a.dpinblk.red.pad3(href='script:worldmap_scroll_to_int('+row.x+','+row.y+')') 보기
+                a.pad3.tc.dpinblk.wblue(href='script:select(\'port\','+row.region_id+')') 선택

@@ -21,6 +21,6 @@ html
               | [#{row.ship_id}] #{row.name} [#{row.shiproute_id}]
               br
               a.dpinblk.red.pad3(href='/sell_vessel?u=' + user.guid + '&s=' + row.ship_id + '&currentFirstKey=' + firstKey) 매각
-              a.dpinblk.red.pad3(href='script:set_track_object_ship_id(' + row.ship_id + ')') 추적
-              a.dpinblk.red.pad3(href='script:request_waypoints(' + row.ship_id + ')') 항로
+              a.dpinblk.red.pad3(href='script:track(' + row.ship_id + ')') 추적
+              a.pad3.tc.dpinblk.wblue(href='script:select(\'ship\',' + row.ship_id + ')') 선택
 
