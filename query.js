@@ -4,6 +4,7 @@ const db = new Sqlite3('ttl.db')
 const insertUser = db.prepare(`INSERT INTO user (guid, name) VALUES (?, ?)`)
 const insertShip = db.prepare(`INSERT INTO ship (user_id, name) VALUES (?, ?)`)
 const deleteShip = db.prepare(`DELETE FROM ship WHERE ship_id = ?`)
+const insertPort = db.prepare(`INSERT INTO region (name, x, y) VALUES (?, ?, ?)`)
 const insertShiproute = db.prepare(
   `INSERT INTO shiproute (port1_id, port2_id) VALUES (?, ?)`
 )
@@ -56,7 +57,16 @@ FROM region r
 WHERE r.region_id = ?`)
 const findPorts = db.prepare(`SELECT
   region_id, name, x, y
-FROM region LIMIT 9`)
+FROM region LIMIT 7`)
+const findPortsScrollDown = db.prepare(`SELECT
+  region_id, name, x, y
+  FROM region
+  WHERE region_id > ? ORDER BY region_id LIMIT ?`)
+const findPortsScrollUp = db.prepare(`SELECT
+  region_id, name, x, y
+  FROM region
+  WHERE region_id < ? ORDER BY region_id DESC LIMIT ?`)
+
 module.exports = {
   insertUser,
   insertShip,
@@ -67,7 +77,10 @@ module.exports = {
   findMission,
   findMissions,
   findPort,
+  insertPort,
   findPorts,
+  findPortsScrollDown,
+  findPortsScrollUp,
   insertShiproute,
   setShipShiproute,
   listShipShiproute,
@@ -75,5 +88,5 @@ module.exports = {
   findUserGuid,
   findUserShipsScrollDown,
   findUserShipsScrollUp,
-  deleteShip
+  deleteShip,
 }

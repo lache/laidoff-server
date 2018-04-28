@@ -34,6 +34,11 @@ const createUser = guid => {
   // query.insertShip.run(user.lastInsertROWID, shipName)
   return user.lastInsertROWID
 }
+const createPort = (guid, portName, x, y) => {
+  const user = findOrCreateUser(guid)
+  const port = query.insertPort.run(portName, x, y)
+  return port.lastInsertROWID
+}
 const createShip = (guid, shipName) => {
   const user = findOrCreateUser(guid)
   const ship = query.insertShip.run(user.user_id, shipName)
@@ -50,7 +55,7 @@ const setShipShiproute = (shipId, shiprouteId) => {
   query.setShipShiproute.run(shiprouteId, shipId)
 }
 const listShipShiproute = onRow => {
-  for (var row of query.listShipShiproute.iterate()) {
+  for (const row of query.listShipShiproute.iterate()) {
     onRow(row)
   }
 }
@@ -100,22 +105,11 @@ const findMissions = () => {
 }
 
 const findPort = portId => query.findPort.get(portId)
-const findPorts = () => {
-  const result = query.findPorts.all()
-  const rows = []
-  let row = []
-  let index = 0
-  for (let each of result) {
-    row.push(each)
-    if (++index % 3 === 0) {
-      rows.push(row)
-      row = []
-    }
-  }
-  if (row.length > 0) {
-    rows.push(row)
-  }
-  return rows
+const findPortsScrollDown = (userId, lastRegionId, count) => {
+  return query.findPortsScrollDown.all(lastRegionId, count)
+}
+const findPortsScrollUp = (userId, lastRegionId, count) => {
+  return query.findPortsScrollUp.all(lastRegionId, count)
 }
 
 const spawnSeaObject = (id, x, y) => {
@@ -284,8 +278,48 @@ app.get('/success', (req, res) => {
 
 app.get('/port', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
-  const p = findPorts()
-  return res.render('port', { user: u, rows: p })
+  const limit = 6
+  let p
+  if (req.query.firstKey) {
+    // user pressed 'next' page button
+    p = findPortsScrollDown(u.user_id, req.query.firstKey, limit)
+    if (p.length === 0) {
+      // no next elements available. stay on the current page
+      p = findPortsScrollDown(u.user_id, req.query.currentFirstKey - 1, limit)
+    }
+  } else if (req.query.lastKey) {
+    // user pressed 'prev' page button
+    p = findPortsScrollUp(u.user_id, req.query.lastKey, limit)
+    p.reverse()
+    if (p.length === 0) {
+      // no prev elements available. stay on the current page
+      p = findPortsScrollDown(u.user_id, req.query.currentFirstKey - 1, limit)
+    }
+  } else if (
+    req.query.currentFirstKey &&
+    req.query.currentFirstKey !== 'undefined'
+  ) {
+    // refresh current page
+    p = findPortsScrollDown(u.user_id, req.query.currentFirstKey - 1, limit)
+    if (p.length === 0) {
+      // the only element in this page is removed
+      // go to previous page
+      p = findPortsScrollUp(u.user_id, req.query.currentFirstKey, limit)
+      p.reverse()
+    }
+  } else {
+    // default: fetch first page
+    p = findPortsScrollDown(u.user_id, 0, limit)
+  }
+  const firstKey = p.length > 0 ? p[0].region_id : undefined
+  const lastKey = p.length > 0 ? p[p.length - 1].region_id : undefined
+
+  return res.render('port', {
+    user: u,
+    rows: p,
+    firstKey: firstKey,
+    lastKey: lastKey
+  })
 })
 
 app.get('/traveltoport', (req, res) => {
@@ -323,17 +357,58 @@ const sendSpawnShip = (id, name, x, y, port1Id = -1, port2Id = -1) => {
   })
 }
 
+const sendSpawnPort = (id, name, x, y) => {
+  const buf = message.SpawnPortStruct.buffer()
+  for (let i = 0; i < buf.length; i++) {
+    buf[i] = 0
+  }
+  message.SpawnPortStruct.fields.type = 6
+  message.SpawnPortStruct.fields.id = id
+  message.SpawnPortStruct.fields.name = name
+  message.SpawnPortStruct.fields.x = x
+  message.SpawnPortStruct.fields.y = y
+  seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
+    if (err) {
+      console.error('sea udp SpawnShipStruct client error:', err)
+    }
+  })
+}
+
 app.get('/purchase_new_ship', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
   const shipName = `${raname.middle()} ${raname.middle()}`
   const shipId = createShip(u.guid, shipName)
   sendSpawnShip(shipId, u.user_name, req.get('X-Lng'), req.get('X-Lat'))
-  spendGold(u.guid, 1000000)
+  spendGold(u.guid, 1000)
   delete userCache[u.guid]
   const uAfter = findOrCreateUser(req.query.u || uuidv1())
   res.redirect(
     url.format({
       pathname: '/vessel',
+      query: {
+        u: uAfter.guid,
+        currentFirstKey: req.query.currentFirstKey
+      }
+    })
+  )
+})
+
+app.get('/purchase_new_port', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const portName = `Port ${raname.first()}`
+  const regionId = createPort(
+    u.guid,
+    portName,
+    req.get('X-Lng'),
+    req.get('X-Lat')
+  )
+  sendSpawnPort(regionId, portName, req.get('X-Lng'), req.get('X-Lat'))
+  spendGold(u.guid, 10000)
+  delete userCache[u.guid]
+  const uAfter = findOrCreateUser(req.query.u || uuidv1())
+  res.redirect(
+    url.format({
+      pathname: '/port',
       query: {
         u: uAfter.guid,
         currentFirstKey: req.query.currentFirstKey

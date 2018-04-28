@@ -1,21 +1,27 @@
 html
-    include ./includes/head.pug
-    body.mar00.fwht.bsea.f1
-        include ./includes/stat.pug
-
-        a.dpinblk.red.pad5(href='/idle?u=' + user.guid) 취소
-
-        div.mar0a.blk8.w70
-            div.pad2.tc.f1p5 항구 선택
-
-        table.mar0a.blk.w70
-            each row in rows
-                tr
-                    each col in row
-                        td.wspre
-                            | #{col.name}
-                            | 경도: #{col.x}
-                            | 위도: #{col.y}
-                        td
-                            a.pad5.tc.dpblc.wblue(href='/traveltoport?u=' + user.guid + '&region=' + col.region_id) 부드러운이동
-                            a.pad5.tc.dpblc.wblue(href='/teleporttoport?u=' + user.guid + '&region=' + col.region_id) 순간이동
+  include ./includes/head.pug
+  body.mar00.fwht.bsea.f1
+    include ./includes/stat.pug
+    include ./includes/topmenu.pug
+    div.floatright
+      div.alignright
+        a.dpinblk.red.pad3(href='/purchase_new_port?u=' + user.guid + '&currentFirstKey=' + firstKey)
+          | 새 항구
+        a.dpinblk.red.pad3(href='/port?u=' + user.guid + '&lastKey=' + firstKey + '&currentFirstKey=' + firstKey)
+          | 이전
+        a.dpinblk.red.pad3(href='/port?u=' + user.guid + '&firstKey=' + lastKey + '&currentFirstKey=' + firstKey)
+          | 다음
+      table.blk
+        //tr
+          td 이름
+          td 위치
+          td 기능
+        each row in rows
+          tr
+            td #{row.name}
+            td
+              | #{row.x}
+              br
+              | #{row.y}
+            td
+              a.pad3.tc.dpblc.wblue(href='/teleporttoport?u=' + user.guid + '&region=' + row.region_id) 보기

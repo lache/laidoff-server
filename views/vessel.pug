@@ -3,16 +3,17 @@ html
   body.mar00.fwht.bsea.f1
     include ./includes/stat.pug
     include ./includes/topmenu.pug
-    a.dpinblk.red.pad3(href='/purchase_new_ship?u=' + user.guid + '&currentFirstKey=' + firstKey)
-      | 새 선박 구입 (테스트)
     div.floatright
       div.alignright
+        a.dpinblk.red.pad3(href='/purchase_new_ship?u=' + user.guid + '&currentFirstKey=' + firstKey)
+          | 새 선박
+        //a.dpinblk.red.pad3(href='script:set_track_object_ship_id(0)')
+          | 추적 해제
         a.dpinblk.red.pad3(href='/vessel?u=' + user.guid + '&lastKey=' + firstKey + '&currentFirstKey=' + firstKey)
           | 이전
         a.dpinblk.red.pad3(href='/vessel?u=' + user.guid + '&firstKey=' + lastKey + '&currentFirstKey=' + firstKey)
           | 다음
-        a.dpinblk.red.pad3(href='script:set_track_object_ship_id(0)')
-          | 추적 해제
+
       table.solidborder.nowrap
         each row in rows
           tr
