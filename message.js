@@ -65,18 +65,8 @@ const SpawnShipStruct = Struct()
   .floatle('y')
   .word32Sle('port1Id')
   .word32Sle('port2Id')
+  .word32Sle('new_spawn')
 SpawnShipStruct.allocate()
-
-const SpawnPortStruct = Struct()
-  .word8Sle('type')
-  .word8Sle('padding0')
-  .word8Sle('padding1')
-  .word8Sle('padding2')
-  .word32Sle('id')
-  .chars('name', 64)
-  .word32Sle('x')
-  .word32Sle('y')
-SpawnPortStruct.allocate()
 
 const SpawnShipReplyStruct = Struct()
   .word8Sle('type')
@@ -104,6 +94,26 @@ const DeleteShipStruct = Struct()
   .word32Sle('shipId')
 DeleteShipStruct.allocate()
 
+const SpawnPortStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .word32Sle('id')
+  .chars('name', 64)
+  .word32Sle('x')
+  .word32Sle('y')
+SpawnPortStruct.allocate()
+
+const SpawnPortReplyStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .word32Sle('id')
+  .word32Sle('portId')
+SpawnPortReplyStruct.allocate()
+
 module.exports = {
   SpawnStruct,
   TravelToStruct,
@@ -112,5 +122,6 @@ module.exports = {
   SpawnShipReplyStruct,
   ArrivalStruct,
   DeleteShipStruct,
-  SpawnPortStruct
+  SpawnPortStruct,
+  SpawnPortReplyStruct
 }

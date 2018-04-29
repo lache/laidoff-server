@@ -105,6 +105,8 @@ const findMissions = () => {
 }
 
 const findPort = portId => query.findPort.get(portId)
+const updatePortSeaServerPortId = (portId, seaServerPortId) =>
+  query.updatePortSeaServerPortId.run(seaServerPortId, portId)
 const findPortsScrollDown = (userId, lastRegionId, count) => {
   return query.findPortsScrollDown.all(lastRegionId, count)
 }
@@ -350,6 +352,8 @@ const sendSpawnShip = (id, name, x, y, port1Id = -1, port2Id = -1) => {
   message.SpawnShipStruct.fields.y = y
   message.SpawnShipStruct.fields.port1Id = port1Id
   message.SpawnShipStruct.fields.port2Id = port2Id
+  message.SpawnShipStruct.fields.new_spawn =
+    port1Id !== -1 && port2Id !== -1 ? 1 : 0
   seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
     if (err) {
       console.error('sea udp SpawnShipStruct client error:', err)
@@ -380,6 +384,34 @@ app.get('/purchase_new_ship', (req, res) => {
   const shipId = createShip(u.guid, shipName)
   sendSpawnShip(shipId, u.user_name, req.get('X-Lng'), req.get('X-Lat'))
   spendGold(u.guid, 1000)
+  delete userCache[u.guid]
+  const uAfter = findOrCreateUser(req.query.u || uuidv1())
+  res.redirect(
+    url.format({
+      pathname: '/vessel',
+      query: {
+        u: uAfter.guid,
+        currentFirstKey: req.query.currentFirstKey
+      }
+    })
+  )
+})
+
+app.get('/purchase_new_ship_with_ports', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  const shipName = `${raname.middle()} ${raname.middle()}`
+  const shipId = createShip(u.guid, shipName)
+  const p1 = findPort(req.query.p1)
+  const p2 = findPort(req.query.p2)
+  sendSpawnShip(
+    shipId,
+    u.user_name,
+    req.get('X-Lng'),
+    req.get('X-Lat'),
+    p1.port_id,
+    p2.port_id
+  )
+  spendGold(u.guid, 10000)
   delete userCache[u.guid]
   const uAfter = findOrCreateUser(req.query.u || uuidv1())
   res.redirect(
@@ -437,6 +469,20 @@ app.get('/newPortRegistered', (req, res) => {
   return res.render('testNewPort', { user: u, seaport: seaport })
 })
 
+app.get('/seaway', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  // const ships = req.get('X-Select-Ship').split(',')
+  const ports = req.get('X-Select-Port')
+    ? req.get('X-Select-Port').split(',')
+    : null
+  let p1, p2
+  if (ports && ports.length >= 2) {
+    p1 = findPort(ports[ports.length - 1])
+    p2 = findPort(ports[ports.length - 2])
+  }
+  return res.render('seaway', { user: u, p1: p1, p2: p2 })
+})
+
 app.get('/test*', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
   return res.render(req.url.substring(1, req.url.length), { user: u })
@@ -490,6 +536,20 @@ seaUdpClient.on('message', function(buf, remote) {
     } else {
       console.error(
         `Could not find ship with id ${message.ArrivalStruct.fields.shipId}!`
+      )
+    }
+  } else if (buf[0] === 4) {
+    // SpawnPortReply
+    message.SpawnPortReplyStruct._setBuff(buf)
+    const port = findPort(message.SpawnPortReplyStruct.fields.id)
+    if (port) {
+      updatePortSeaServerPortId(
+        port.region_id,
+        message.SpawnPortReplyStruct.fields.portId
+      )
+    } else {
+      console.error(
+        `Could not find port with id ${message.SpawnPortReplyStruct.fields.id}!`
       )
     }
   }
