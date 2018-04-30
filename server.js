@@ -59,6 +59,11 @@ const listShipShiproute = onRow => {
     onRow(row)
   }
 }
+const listPortName  = onRow => {
+  for (const row of query.listPortName.iterate()) {
+    onRow(row)
+  }
+}
 const findShip = shipId => query.findShip.get(shipId)
 const findUser = guid => query.findUser.get(guid)
 const findUserGuid = userId => query.findUserGuid.get(userId)
@@ -361,6 +366,21 @@ const sendSpawnShip = (id, name, x, y, port1Id = -1, port2Id = -1) => {
   })
 }
 
+const sendNamePort = (portId, name) => {
+  const buf = message.NamePortStruct.buffer()
+  for (let i = 0; i < buf.length; i++) {
+    buf[i] = 0
+  }
+  message.NamePortStruct.fields.type = 7
+  message.NamePortStruct.fields.portId = portId
+  message.NamePortStruct.fields.name = name
+  seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
+    if (err) {
+      console.error('sea udp sendNamePort client error:', err)
+    }
+  })
+}
+
 const sendSpawnPort = (id, name, x, y) => {
   const buf = message.SpawnPortStruct.buffer()
   for (let i = 0; i < buf.length; i++) {
@@ -513,13 +533,20 @@ seaUdpClient.on('message', function(buf, remote) {
     )
     console.log('A new sea-server instance requested recovering.')
     console.log('Recovering in progress...')
-    let count = 0
+    let shipShiprouteCount = 0
     listShipShiproute(row => {
       // console.log(row)
       sendSpawnShip(row.ship_id, '', 0, 0, row.port1_id, row.port2_id)
-      count++
+      shipShiprouteCount++
     })
-    console.log(`Recovering Done. ${count} ship(s) recovered.`)
+    console.log(`  ${shipShiprouteCount} ship(s) recovered...`)
+    let portNameCount = 0
+    listPortName(row => {
+      sendNamePort(row.port_id, row.name)
+      portNameCount++
+    })
+    console.log(`  ${portNameCount} port(s) name recovered...`)
+    console.log(`Recovering Done.`)
   } else if (buf[0] === 3) {
     // Arrival
     message.ArrivalStruct._setBuff(buf)

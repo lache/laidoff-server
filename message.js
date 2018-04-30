@@ -114,6 +114,15 @@ const SpawnPortReplyStruct = Struct()
   .word32Sle('portId')
 SpawnPortReplyStruct.allocate()
 
+const NamePortStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .word32Sle('portId')
+  .chars('name', 64)
+NamePortStruct.allocate()
+
 module.exports = {
   SpawnStruct,
   TravelToStruct,
@@ -123,5 +132,6 @@ module.exports = {
   ArrivalStruct,
   DeleteShipStruct,
   SpawnPortStruct,
-  SpawnPortReplyStruct
+  SpawnPortReplyStruct,
+  NamePortStruct,
 }

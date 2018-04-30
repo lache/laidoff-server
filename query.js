@@ -71,7 +71,9 @@ const findPortsScrollUp = db.prepare(`SELECT
   region_id, name, x, y
   FROM region
   WHERE region_id < ? ORDER BY region_id DESC LIMIT ?`)
-
+const listPortName = db.prepare(
+  `SELECT port_id, name FROM region WHERE port_id IS NOT NULL`
+)
 module.exports = {
   insertUser,
   insertShip,
@@ -87,6 +89,7 @@ module.exports = {
   findPorts,
   findPortsScrollDown,
   findPortsScrollUp,
+  listPortName,
   insertShiproute,
   setShipShiproute,
   listShipShiproute,
