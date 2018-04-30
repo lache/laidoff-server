@@ -18,7 +18,8 @@ html
         each row in rows
           tr
             td
-              | [#{row.ship_id}] #{row.name} [#{row.shiproute_id}]
+              span.yellow #{row.ship_id}
+              span #{row.name}
               br
               a.dpinblk.red.pad3(href='/sell_vessel?u=' + user.guid + '&s=' + row.ship_id + '&currentFirstKey=' + firstKey) 매각
               a.dpinblk.red.pad3(href='script:track(' + row.ship_id + ')') 추적

@@ -496,9 +496,13 @@ app.get('/seaway', (req, res) => {
     ? req.get('X-Select-Port').split(',')
     : null
   let p1, p2
-  if (ports && ports.length >= 2) {
-    p1 = findPort(ports[ports.length - 1])
-    p2 = findPort(ports[ports.length - 2])
+  if (ports) {
+    if (ports.length >= 1) {
+      p1 = findPort(ports[ports.length - 1])
+    }
+    if (ports.length >= 2) {
+      p2 = findPort(ports[ports.length - 2])
+    }
   }
   return res.render('seaway', { user: u, p1: p1, p2: p2 })
 })
