@@ -59,7 +59,7 @@ const listShipShiproute = onRow => {
     onRow(row)
   }
 }
-const listPortName  = onRow => {
+const listPortName = onRow => {
   for (const row of query.listPortName.iterate()) {
     onRow(row)
   }
@@ -118,7 +118,9 @@ const findPortsScrollDown = (userId, lastRegionId, count) => {
 const findPortsScrollUp = (userId, lastRegionId, count) => {
   return query.findPortsScrollUp.all(lastRegionId, count)
 }
-
+const deletePort = portId => {
+  query.deletePort.run(portId)
+}
 const spawnSeaObject = (id, x, y) => {
   const buf = message.SpawnStruct.buffer()
   for (let i = 0; i < buf.length; i++) {
@@ -505,6 +507,36 @@ app.get('/seaway', (req, res) => {
     }
   }
   return res.render('seaway', { user: u, p1: p1, p2: p2 })
+})
+
+app.get('/sell_port', (req, res) => {
+  const u = findOrCreateUser(req.query.u || uuidv1())
+  if (req.query.r) {
+    const port = findPort(req.query.r)
+    if (port) {
+      deletePort(req.query.r)
+      const buf = message.DeletePortStruct.buffer()
+      for (let i = 0; i < buf.length; i++) {
+        buf[i] = 0
+      }
+      message.DeletePortStruct.fields.type = 8 // Delete Port
+      message.DeletePortStruct.fields.portId = port.port_id
+      seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
+        if (err) {
+          console.error('sea udp client error:', err)
+        }
+      })
+    }
+  }
+  res.redirect(
+    url.format({
+      pathname: '/port',
+      query: {
+        u: u.guid,
+        currentFirstKey: req.query.currentFirstKey
+      }
+    })
+  )
 })
 
 app.get('/test*', (req, res) => {

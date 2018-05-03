@@ -123,6 +123,14 @@ const NamePortStruct = Struct()
   .chars('name', 64)
 NamePortStruct.allocate()
 
+const DeletePortStruct = Struct()
+  .word8Sle('type')
+  .word8Sle('padding0')
+  .word8Sle('padding1')
+  .word8Sle('padding2')
+  .word32Sle('portId')
+DeletePortStruct.allocate()
+
 module.exports = {
   SpawnStruct,
   TravelToStruct,
@@ -134,4 +142,5 @@ module.exports = {
   SpawnPortStruct,
   SpawnPortReplyStruct,
   NamePortStruct,
+  DeletePortStruct
 }

@@ -24,5 +24,6 @@ html
               br
               | #{row.y}
             td.nowrap
+                a.dpinblk.red.pad3(href='/sell_port?u=' + user.guid + '&r=' + row.region_id + '&currentFirstKey=' + firstKey) 매각
                 a.dpinblk.red.pad3(href='script:worldmap_scroll_to_int('+row.x+','+row.y+')') 보기
                 a.pad3.tc.dpinblk.wblue(href='script:select(\'port\','+row.region_id+')') 선택

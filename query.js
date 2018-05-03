@@ -74,6 +74,7 @@ const findPortsScrollUp = db.prepare(`SELECT
 const listPortName = db.prepare(
   `SELECT port_id, name FROM region WHERE port_id IS NOT NULL`
 )
+const deletePort = db.prepare(`DELETE FROM region WHERE region_id = ?`)
 module.exports = {
   insertUser,
   insertShip,
@@ -97,5 +98,6 @@ module.exports = {
   findUserGuid,
   findUserShipsScrollDown,
   findUserShipsScrollUp,
-  deleteShip
+  deleteShip,
+  deletePort
 }
