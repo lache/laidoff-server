@@ -287,7 +287,7 @@ app.get('/success', (req, res) => {
 
 app.get('/port', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
-  const limit = 6
+  const limit = 5
   let p
   if (req.query.firstKey) {
     // user pressed 'next' page button
@@ -327,7 +327,8 @@ app.get('/port', (req, res) => {
     user: u,
     rows: p,
     firstKey: firstKey,
-    lastKey: lastKey
+    lastKey: lastKey,
+    errMsg: req.query.errMsg
   })
 })
 
@@ -450,25 +451,35 @@ app.get('/purchase_new_ship_with_ports', (req, res) => {
 app.get('/purchase_new_port', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
   const portName = `Port ${raname.first()}`
-  const regionId = createPort(
-    u.guid,
-    portName,
-    req.get('X-Lng'),
-    req.get('X-Lat')
-  )
-  sendSpawnPort(regionId, portName, req.get('X-Lng'), req.get('X-Lat'))
-  spendGold(u.guid, 10000)
-  delete userCache[u.guid]
-  const uAfter = findOrCreateUser(req.query.u || uuidv1())
-  res.redirect(
-    url.format({
-      pathname: '/port',
-      query: {
-        u: uAfter.guid,
-        currentFirstKey: req.query.currentFirstKey
-      }
-    })
-  )
+  const selectedLng = req.get('X-S-Lng')
+  const selectedLat = req.get('X-S-Lat')
+  if (selectedLng < 0 || selectedLat < 0) {
+    res.redirect(
+      url.format({
+        pathname: '/port',
+        query: {
+          u: u.guid,
+          currentFirstKey: req.query.currentFirstKey,
+          errMsg: '지도 상에서 항구를 만들고 싶은 셀을 선택해야 합니다.'
+        }
+      })
+    )
+  } else {
+    const regionId = createPort(u.guid, portName, selectedLng, selectedLat)
+    sendSpawnPort(regionId, portName, selectedLng, selectedLat)
+    spendGold(u.guid, 10000)
+    delete userCache[u.guid]
+    const uAfter = findOrCreateUser(req.query.u || uuidv1())
+    res.redirect(
+      url.format({
+        pathname: '/port',
+        query: {
+          u: uAfter.guid,
+          currentFirstKey: req.query.currentFirstKey
+        }
+      })
+    )
+  }
 })
 
 app.get('/newPortRegistered', (req, res) => {
