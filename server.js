@@ -580,10 +580,9 @@ app.get('/link', (req, res) => {
 
     res.redirect(
       url.format({
-        pathname: '/port',
+        pathname: '/idle',
         query: {
-          u: u.guid,
-          currentFirstKey: req.query.currentFirstKey
+          u: u.guid
         }
       })
     )
