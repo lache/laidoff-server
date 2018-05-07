@@ -448,9 +448,16 @@ app.get('/purchase_new_ship_with_ports', (req, res) => {
   )
 })
 
+const execCreatePort = (u, selectedLng, selectedLat) => {
+  const portName = `Port ${raname.first()}`
+  const regionId = createPort(u.guid, portName, selectedLng, selectedLat)
+  sendSpawnPort(regionId, portName, selectedLng, selectedLat)
+  spendGold(u.guid, 10000)
+  return regionId
+}
+
 app.get('/purchase_new_port', (req, res) => {
   const u = findOrCreateUser(req.query.u || uuidv1())
-  const portName = `Port ${raname.first()}`
   const selectedLng = req.get('X-S-Lng')
   const selectedLat = req.get('X-S-Lat')
   if (selectedLng < 0 || selectedLat < 0) {
@@ -465,9 +472,7 @@ app.get('/purchase_new_port', (req, res) => {
       })
     )
   } else {
-    const regionId = createPort(u.guid, portName, selectedLng, selectedLat)
-    sendSpawnPort(regionId, portName, selectedLng, selectedLat)
-    spendGold(u.guid, 10000)
+    execCreatePort(u, selectedLng, selectedLat)
     delete userCache[u.guid]
     const uAfter = findOrCreateUser(req.query.u || uuidv1())
     res.redirect(
@@ -548,6 +553,41 @@ app.get('/sell_port', (req, res) => {
       }
     })
   )
+})
+
+app.get('/link', (req, res) => {
+  const u = findOrCreateUser(req.get('X-U') || uuidv1())
+  const xc0 = req.get('X-D-XC0')
+  const yc0 = req.get('X-D-YC0')
+  const xc1 = req.get('X-D-XC1')
+  const yc1 = req.get('X-D-YC1')
+  console.log(`Link [${xc0}, ${yc0}]-[${xc1}, ${yc1}]`)
+  const r0 = execCreatePort(u, xc0, yc0)
+  const r1 = execCreatePort(u, xc1, yc1)
+  setTimeout(() => {
+    const shipName = `${raname.middle()} ${raname.middle()}`
+    const shipId = createShip(u.guid, shipName)
+    const p1 = findPort(r0)
+    const p2 = findPort(r1)
+    sendSpawnShip(
+      shipId,
+      u.user_name,
+      req.get('X-Lng'),
+      req.get('X-Lat'),
+      p1.port_id,
+      p2.port_id
+    )
+
+    res.redirect(
+      url.format({
+        pathname: '/port',
+        query: {
+          u: u.guid,
+          currentFirstKey: req.query.currentFirstKey
+        }
+      })
+    )
+  }, 1000)
 })
 
 app.get('/test*', (req, res) => {
