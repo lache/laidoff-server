@@ -572,8 +572,8 @@ app.get('/link', (req, res) => {
     sendSpawnShip(
       shipId,
       u.user_name,
-      req.get('X-Lng'),
-      req.get('X-Lat'),
+      xc0,
+      yc0,
       p1.port_id,
       p2.port_id
     )
