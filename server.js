@@ -36,7 +36,7 @@ const createUser = guid => {
 }
 const createPort = (guid, portName, x, y) => {
   const user = findOrCreateUser(guid)
-  const port = query.insertPort.run(portName, x, y)
+  const port = query.insertPort.run(portName, x, y, user.user_id)
   return port.lastInsertROWID
 }
 const createShip = (guid, shipName) => {
@@ -369,7 +369,7 @@ const sendSpawnShip = (id, name, x, y, port1Id = -1, port2Id = -1) => {
   })
 }
 
-const sendNamePort = (portId, name) => {
+const sendNamePort = (portId, name, ownerId) => {
   const buf = message.NamePortStruct.buffer()
   for (let i = 0; i < buf.length; i++) {
     buf[i] = 0
@@ -377,6 +377,7 @@ const sendNamePort = (portId, name) => {
   message.NamePortStruct.fields.type = 7
   message.NamePortStruct.fields.portId = portId
   message.NamePortStruct.fields.name = name
+  message.NamePortStruct.fields.owner_id = ownerId
   seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
     if (err) {
       console.error('sea udp sendNamePort client error:', err)
@@ -384,7 +385,7 @@ const sendNamePort = (portId, name) => {
   })
 }
 
-const sendSpawnPort = (id, name, x, y) => {
+const sendSpawnPort = (id, name, x, y, ownerId) => {
   const buf = message.SpawnPortStruct.buffer()
   for (let i = 0; i < buf.length; i++) {
     buf[i] = 0
@@ -394,6 +395,7 @@ const sendSpawnPort = (id, name, x, y) => {
   message.SpawnPortStruct.fields.name = name
   message.SpawnPortStruct.fields.x = x
   message.SpawnPortStruct.fields.y = y
+  message.SpawnPortStruct.fields.ownerId = ownerId
   seaUdpClient.send(Buffer.from(buf), 4000, 'localhost', err => {
     if (err) {
       console.error('sea udp SpawnShipStruct client error:', err)
@@ -450,8 +452,8 @@ app.get('/purchase_new_ship_with_ports', (req, res) => {
 
 const execCreatePort = (u, selectedLng, selectedLat) => {
   const portName = `Port ${raname.first()}`
-  const regionId = createPort(u.guid, portName, selectedLng, selectedLat)
-  sendSpawnPort(regionId, portName, selectedLng, selectedLat)
+  const regionId = createPort(u.guid, portName, selectedLng, selectedLat, u.user_id)
+  sendSpawnPort(regionId, portName, selectedLng, selectedLat, u.user_id)
   spendGold(u.guid, 10000)
   return regionId
 }
@@ -628,7 +630,7 @@ seaUdpClient.on('message', function(buf, remote) {
     console.log(`  ${shipShiprouteCount} ship(s) recovered...`)
     let portNameCount = 0
     listPortName(row => {
-      sendNamePort(row.port_id, row.name)
+      sendNamePort(row.port_id, row.name, row.owner_id)
       portNameCount++
     })
     console.log(`  ${portNameCount} port(s) name recovered...`)
