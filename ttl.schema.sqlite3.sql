@@ -54,4 +54,8 @@ DROP INDEX IF EXISTS `ux_guid`;
 CREATE UNIQUE INDEX IF NOT EXISTS `ux_guid` ON `user` (
 	`guid`
 );
+DROP INDEX IF EXISTS `region_port`;
+CREATE UNIQUE INDEX IF NOT EXISTS `region_port` ON `region` (
+	`port_id`	ASC
+);
 COMMIT;
