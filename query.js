@@ -57,6 +57,10 @@ const findPort = db.prepare(`SELECT
   region_id, name, x, y, port_id
 FROM region r
 WHERE r.region_id = ?`)
+const findPortByPortId = db.prepare(`SELECT
+  region_id, name, x, y, port_id
+FROM region r
+WHERE r.port_id = ?`)
 const updatePortSeaServerPortId = db.prepare(
   `UPDATE region SET port_id = ? WHERE region_id = ?`
 )
@@ -85,6 +89,7 @@ module.exports = {
   findMission,
   findMissions,
   findPort,
+  findPortByPortId,
   updatePortSeaServerPortId,
   insertPort,
   findPorts,

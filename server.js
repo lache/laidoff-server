@@ -110,6 +110,7 @@ const findMissions = () => {
 }
 
 const findPort = portId => query.findPort.get(portId)
+const findPortByPortId = portId => query.findPortByPortId.get(portId)
 const updatePortSeaServerPortId = (portId, seaServerPortId) =>
   query.updatePortSeaServerPortId.run(seaServerPortId, portId)
 const findPortsScrollDown = (userId, lastRegionId, count) => {
@@ -433,11 +434,7 @@ const sendSpawnPort = async (id, name, x, y, ownerId) => {
       console.error('sea udp SpawnShipStruct client error:', err)
     }
   })
-  if (reply.portId >= 0) {
-  } else {
-    console.error('Spawn port failed at sea!')
-  }
-  return reply.portId
+  return reply
 }
 
 app.get('/purchase_new_ship', async (req, res) => {
@@ -489,31 +486,41 @@ app.get('/purchase_new_ship_with_ports', async (req, res) => {
 
 const execCreatePort = async (u, selectedLng, selectedLat) => {
   const portName = `Port ${raname.first()}`
-  const portId = await sendSpawnPort(
+  const reply = await sendSpawnPort(
     0,
     portName,
     selectedLng,
     selectedLat,
     u.user_id
   )
-  if (portId >= 0) {
-    const regionId = createPort(
-      u.guid,
-      portName,
-      selectedLng,
-      selectedLat,
-      u.user_id
-    )
-    const port = findPort(regionId)
-    if (port) {
-      updatePortSeaServerPortId(port.region_id, portId)
-    } else {
-      console.error(
-        `Could not find port with id ${message.SpawnPortReplyStruct.fields.id}!`
+  if (reply.portId >= 0) {
+    if (reply.existing === 0) {
+      const regionId = createPort(
+        u.guid,
+        portName,
+        selectedLng,
+        selectedLat,
+        u.user_id
       )
+      const port = findPort(regionId)
+      if (port) {
+        updatePortSeaServerPortId(port.region_id, reply.portId)
+      } else {
+        console.error(
+          `Could not find port with id ${message.SpawnPortReplyStruct.fields.id}!`
+        )
+      }
+      spendGold(u.guid, 10000)
+      return regionId
+    } else {
+      const port = findPortByPortId(reply.portId)
+      if (port) {
+        return port.region_id
+      } else {
+        console.error("findPortByPortId returned null")
+        return -1
+      }
     }
-    spendGold(u.guid, 10000)
-    return regionId
   } else {
     return -1
   }

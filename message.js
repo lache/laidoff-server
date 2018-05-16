@@ -118,6 +118,7 @@ const SpawnPortReplyStruct = Struct()
   .word32Sle('id')
   .word32Sle('portId')
   .word32Sle('replyId')
+  .word32Sle('existing')
 SpawnPortReplyStruct.allocate()
 
 const NamePortStruct = Struct()
