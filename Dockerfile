@@ -1,17 +1,20 @@
-FROM mhart/alpine-node:latest
+FROM node:8-alpine as builder
 
 RUN apk add --no-cache gcc g++ make python
-RUN npm i -g npm node-gyp npx
 
-COPY . /app
 WORKDIR /app
-
+COPY package.json /app/package.json
+COPY package-lock.json /app/package-lock.json
 RUN npm install --production
-RUN apk del make gcc g++ python
+
+FROM node:8-alpine
+
+WORKDIR /app
+COPY --from=builder /app/node_modules /app/node_modules
+COPY . /app
 
 RUN npm run init
 
 EXPOSE 3000 3003/udp
-ENTRYPOINT ["/bin/sh"]
-CMD ["-c", "npm run start"]
+CMD ["npm", "run", "start"]
 

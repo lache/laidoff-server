@@ -1,16 +1,14 @@
-.git
-.idea
-.vscode
-
-node_modules
+.git/
+.idea/
+.vscode/
+node_modules/
 
 .gitignore
 .dockerignore
 .eslintrc
 .prettierignore
-package-lock.json
 
 README.md
-Makefile
 Dockerfile
+docker-compose.yml
 
