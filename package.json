@@ -1,23 +1,21 @@
 {
   "name": "laidoff-server",
   "version": "1.0.0",
-  "description": "Hi, there",
-  "main": "server.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "init": "node server.js --init"
+    "start": "node src/index.js",
+    "init": "node src/index.js --init"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lacti/laidoff-server.git"
+    "url": "git+https://github.com/lache/laidoff-server.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/lacti/laidoff-server/issues"
+    "url": "https://github.com/lache/laidoff-server/issues"
   },
-  "homepage": "https://github.com/lacti/laidoff-server#readme",
+  "homepage": "https://github.com/lache/laidoff-server#readme",
   "dependencies": {
     "better-sqlite3": "^4.1.0",
     "dgram": "^1.0.1",

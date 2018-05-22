@@ -21,7 +21,8 @@ const app = express()
 app.locals.moment = moment
 app.locals.numeral = numeral
 
-app.use(express.static('html'))
+app.use(express.static('./src/html'))
+app.set('views', './src/views')
 app.set('view engine', 'pug')
 
 const userCache = {}
@@ -507,7 +508,9 @@ const execCreatePort = async (u, selectedLng, selectedLat) => {
         updatePortSeaServerPortId(port.region_id, reply.portId)
       } else {
         console.error(
-          `Could not find port with id ${message.SpawnPortReplyStruct.fields.id}!`
+          `Could not find port with id ${
+            message.SpawnPortReplyStruct.fields.id
+          }!`
         )
       }
       spendGold(u.guid, 10000)
@@ -517,7 +520,7 @@ const execCreatePort = async (u, selectedLng, selectedLat) => {
       if (port) {
         return port.region_id
       } else {
-        console.error("findPortByPortId returned null")
+        console.error('findPortByPortId returned null')
         return -1
       }
     }
